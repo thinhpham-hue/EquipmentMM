@@ -3,179 +3,110 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Media Mice Studio OS - Quản Lý Thiết Bị & Thẻ Nhớ</title>
+  <title>Media Mice Studio OS - Quản Lý Thiết Bị & Thẻ Nhớ (Supabase)</title>
   
-  <!-- Tailwind CSS -->
+  <!-- Tailwind CSS & Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Google Font: Plus Jakarta Sans -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Supabase JS Client Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
     tailwind.config = {
       darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Plus Jakarta Sans', 'sans-serif'],
-          },
-          colors: {
-            brand: {
-              50: '#f0f6ff',
-              500: '#3b82f6',
-              600: '#2563eb',
-              700: '#1d4ed8',
-            }
-          }
-        }
-      }
+      theme: { extend: { fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] } } }
     }
   </script>
 
   <style>
-    body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      user-select: none;
-    }
-    
-    ::-webkit-scrollbar {
-      width: 5px;
-      height: 5px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #090d16;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #1e293b;
-      border-radius: 9999px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #334155;
-    }
-
-    .workspace-panel {
-      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .drop-zone-active {
-      border-color: #3b82f6 !important;
-      background-color: rgba(59, 130, 246, 0.1) !important;
-      box-shadow: inset 0 0 20px rgba(59, 130, 246, 0.25);
-    }
-
-    .dragging-card {
-      opacity: 0.4;
-      transform: scale(0.96);
-    }
-
-    .writing-mode-vertical {
-      writing-mode: vertical-rl;
-      transform: rotate(180deg);
-      text-orientation: mixed;
-    }
-
+    body { font-family: 'Plus Jakarta Sans', sans-serif; user-select: none; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #090d16; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 9999px; }
+    .workspace-panel { transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
+    .drop-zone-active { border-color: #3b82f6 !important; background-color: rgba(59, 130, 246, 0.1) !important; box-shadow: inset 0 0 20px rgba(59, 130, 246, 0.25); }
+    .dragging-card { opacity: 0.4; transform: scale(0.96); }
+    .writing-mode-vertical { writing-mode: vertical-rl; transform: rotate(180deg); text-orientation: mixed; }
     @media print {
       body * { visibility: hidden; }
       #print-modal-content, #print-modal-content * { visibility: visible; }
-      #print-modal-content {
-        position: absolute; left: 0; top: 0; width: 100%; color: #000 !important; background: #fff !important;
-      }
+      #print-modal-content { position: absolute; left: 0; top: 0; width: 100%; color: #000 !important; background: #fff !important; }
       .no-print { display: none !important; }
     }
   </style>
 </head>
 <body class="h-full flex flex-col bg-slate-950 text-slate-100 antialiased overflow-hidden">
 
+  <!-- Header -->
   <header class="h-14 bg-slate-900 border-b border-slate-800 px-4 flex items-center justify-between flex-shrink-0 z-30 gap-4">
     <div class="flex items-center gap-3">
-      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/20 font-bold text-base flex-shrink-0">
-        <i class="fa-solid fa-film"></i>
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-lg font-bold text-base flex-shrink-0">
+        <i class="fa-solid fa-database"></i>
       </div>
       <div class="hidden sm:block">
-        <h1 class="font-extrabold text-slate-100 text-sm tracking-wide leading-none flex items-center gap-2">
-          MEDIA MICE Studio OS
-          <span class="text-[10px] bg-blue-500/20 text-blue-400 font-semibold px-2 py-0.5 rounded-full border border-blue-500/30">Firebase Cloud</span>
+        <h1 class="font-extrabold text-slate-100 text-sm flex items-center gap-2">
+          MEDIA MICE OS
+          <span class="text-[10px] bg-emerald-500/20 text-emerald-400 font-semibold px-2 py-0.5 rounded-full border border-emerald-500/30">Supabase Cloud</span>
         </h1>
-        <p class="text-[11px] text-slate-400 font-medium mt-0.5">Quản Lý Thiết Bị Production & Thẻ Nhớ Theo Dự Án</p>
+        <p class="text-[11px] text-slate-400 font-medium">Quản Lý Thiết Bị Production & Thẻ Nhớ</p>
       </div>
     </div>
 
-    <!-- Center Top: Search Bar -->
+    <!-- Center Search -->
     <div class="flex-1 max-w-xs relative">
       <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-      <input type="text" id="global-project-search" oninput="filterProjectsBySearch(this.value)" placeholder="Tìm kiếm dự án..." class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 shadow-inner">
+      <input type="text" id="global-project-search" oninput="filterProjectsBySearch(this.value)" placeholder="Tìm kiếm dự án..." class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500">
     </div>
 
     <!-- Right Controls -->
     <div class="flex items-center gap-2">
-      <button onclick="openEquipmentModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-md shadow-blue-500/20 transition-all">
+      <button onclick="openEquipmentModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-md transition-all">
         <i class="fa-solid fa-plus text-[10px]"></i>
         <span class="hidden md:inline">+ Thêm Thiết Bị</span>
       </button>
 
-      <button onclick="openSDCardModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-md shadow-indigo-500/20 transition-all">
+      <button onclick="openSDCardModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-md transition-all">
         <i class="fa-solid fa-sd-card text-[10px]"></i>
         <span class="hidden md:inline">+ Thêm Thẻ Nhớ</span>
-      </button>
-
-      <button onclick="resetDataToDefault()" title="Khôi phục dữ liệu mẫu Media Mice" class="bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white p-2 rounded-lg text-xs border border-slate-700 transition-all">
-        <i class="fa-solid fa-rotate-left"></i>
       </button>
     </div>
   </header>
 
+  <!-- Main 3-Panel Layout -->
   <main id="view-workspace" class="flex-1 flex overflow-hidden p-3 gap-3 bg-slate-950 relative">
 
-    <!-- ================= PANEL 1 (LEFT): DANH SÁCH THIẾT BỊ THEO DỰ ÁN ================= -->
+    <!-- PANEL 1 (LEFT): PROJECTS -->
     <section id="panel-left" class="workspace-panel flex-1 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col min-w-[320px] overflow-hidden relative shadow-2xl">
-      
-      <!-- Header Bar with Year Tabs, Project Tabs & Red Circle Toggle Button -->
       <div id="left-panel-header" class="p-3 bg-slate-900/90 border-b border-slate-800 flex flex-col gap-2.5 flex-shrink-0">
-        
-        <!-- Year Tabs Bar (2025, 2026...) -->
         <div class="flex items-center justify-between gap-2 border-b border-slate-800/80 pb-2">
-          <div class="flex items-center gap-1.5 overflow-x-auto scrollbar-none flex-1" id="year-tabs-container">
-            <!-- Dynamically populated Year Tabs -->
-          </div>
-          <button onclick="addNewYearPrompt()" title="Thêm năm quản lý" class="text-[10px] bg-slate-950 hover:bg-slate-800 text-blue-400 font-semibold px-2 py-1 rounded-lg border border-slate-800 flex items-center gap-1 transition-all">
+          <div class="flex items-center gap-1.5 overflow-x-auto scrollbar-none flex-1" id="year-tabs-container"></div>
+          <button onclick="addNewYearPrompt()" title="Thêm năm" class="text-[10px] bg-slate-950 hover:bg-slate-800 text-blue-400 font-semibold px-2 py-1 rounded-lg border border-slate-800 flex items-center gap-1 transition-all">
             <i class="fa-solid fa-plus text-[9px]"></i>
             <span>Năm</span>
           </button>
         </div>
 
-        <!-- Project Tabs Bar & Red Button -->
         <div class="flex items-center justify-between gap-2">
-          <div class="flex items-center gap-1.5 overflow-x-auto py-0.5 scrollbar-none flex-1 max-w-[calc(100%-44px)]" id="project-tabs-container">
-            <!-- Dynamically populated Project Tabs -->
-          </div>
-
-          <!-- RED CIRCLE TOGGLE BUTTON (PANEL 1) -->
-          <button onclick="togglePanel('left')" title="Thu nhỏ / Mở rộng bảng dự án" class="w-8 h-8 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center shadow-lg shadow-rose-600/40 flex-shrink-0 cursor-pointer border-2 border-rose-400/40 active:scale-90 transition-all">
+          <div class="flex items-center gap-1.5 overflow-x-auto py-0.5 scrollbar-none flex-1" id="project-tabs-container"></div>
+          <button onclick="togglePanel('left')" class="w-8 h-8 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center shadow-lg flex-shrink-0 cursor-pointer border-2 border-rose-400/40 active:scale-90 transition-all">
             <i id="red-btn-left-icon" class="fa-solid fa-minus text-xs"></i>
           </button>
         </div>
       </div>
 
-      <!-- Left Panel Collapsed Bar Indicator -->
-      <div id="left-collapsed-bar" class="hidden flex-1 flex-col items-center justify-between p-3 my-2 mx-auto w-11 bg-slate-950 border border-slate-800 rounded-3xl cursor-pointer hover:border-rose-500/60 hover:bg-rose-950/20 transition-all group shadow-xl" onclick="togglePanel('left')">
-        <div class="w-7 h-7 rounded-full bg-rose-600/20 text-rose-400 group-hover:bg-rose-600 group-hover:text-white flex items-center justify-center transition-all flex-shrink-0 border border-rose-500/30">
+      <!-- Left Collapsed Pill -->
+      <div id="left-collapsed-bar" class="hidden flex-1 flex-col items-center justify-between p-3 my-2 mx-auto w-11 bg-slate-950 border border-slate-800 rounded-3xl cursor-pointer hover:border-rose-500/60 transition-all group shadow-xl" onclick="togglePanel('left')">
+        <div class="w-7 h-7 rounded-full bg-rose-600/20 text-rose-400 flex items-center justify-center flex-shrink-0 border border-rose-500/30">
           <i class="fa-solid fa-arrows-left-right text-xs"></i>
         </div>
-        <div class="writing-mode-vertical text-[11px] font-extrabold text-slate-300 tracking-widest uppercase my-auto py-3 select-none group-hover:text-rose-300">
-          DỰ ÁN & BÀN GIAO
-        </div>
-        <div id="left-collapsed-count" class="font-mono font-black text-xs text-rose-400 bg-rose-950/50 px-1.5 py-0.5 rounded-full border border-rose-800/40 flex-shrink-0">
-          0
-        </div>
+        <div class="writing-mode-vertical text-[11px] font-extrabold text-slate-300 tracking-widest uppercase my-auto py-3">DỰ ÁN & BÀN GIAO</div>
+        <div id="left-collapsed-count" class="font-mono font-black text-xs text-rose-400 bg-rose-950/50 px-1.5 py-0.5 rounded-full border border-rose-800/40">0</div>
       </div>
 
-      <!-- Left Panel Main Content -->
+      <!-- Left Main Content -->
       <div id="left-panel-content" class="flex-1 flex flex-col overflow-hidden p-3">
-        
-        <!-- Active Project Info Header -->
         <div class="bg-slate-950 border border-slate-800/90 rounded-xl p-3 mb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-inner">
           <div>
             <div class="flex items-center gap-2">
@@ -187,50 +118,31 @@
 
           <div class="flex items-center gap-1.5 flex-wrap">
             <button onclick="openPrintCurrentProjectSlip()" title="In phiếu bàn giao" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all">
-              <i class="fa-solid fa-print"></i>
-              <span>In Phiếu</span>
+              <i class="fa-solid fa-print"></i> <span>In Phiếu</span>
             </button>
-            <button onclick="markProjectCompleteAndReturn()" title="Bàn giao tất cả thiết bị đang mượn về kho" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 shadow-md shadow-emerald-600/20 transition-all">
-              <i class="fa-solid fa-check-double"></i>
-              <span>Bàn Giao Tất Cả</span>
+            <button onclick="markProjectCompleteAndReturn()" title="Bàn giao tất cả thiết bị" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 shadow-md transition-all">
+              <i class="fa-solid fa-check-double"></i> <span>Bàn Giao Tất Cả</span>
             </button>
-            <button onclick="confirmDeleteCurrentProject()" title="Xóa dự án này" class="bg-rose-600/20 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/30 px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all">
-              <i class="fa-solid fa-trash-can"></i>
-              <span>Xóa Dự Án</span>
+            <button onclick="confirmDeleteCurrentProject()" title="Xóa dự án" class="bg-rose-600/20 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/30 px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all">
+              <i class="fa-solid fa-trash-can"></i> <span>Xóa Dự Án</span>
             </button>
           </div>
         </div>
 
-        <!-- Drop Zone Area for Project Equipment & SD Cards -->
-        <div id="project-drop-zone" 
-             ondragover="handleDragOver(event)" 
-             ondragenter="handleDragEnter(event)" 
-             ondragleave="handleDragLeave(event)" 
-             ondrop="handleDropOnProject(event)"
-             class="flex-1 border-2 border-dashed border-slate-800 rounded-xl p-2.5 overflow-y-auto space-y-2 transition-all bg-slate-950/40 min-h-[200px]">
-          
+        <div id="project-drop-zone" ondragover="handleDragOver(event)" ondragenter="handleDragEnter(event)" ondragleave="handleDragLeave(event)" ondrop="handleDropOnProject(event)" class="flex-1 border-2 border-dashed border-slate-800 rounded-xl p-2.5 overflow-y-auto space-y-2 bg-slate-950/40 min-h-[200px] transition-all">
           <div id="drop-zone-empty-prompt" class="h-full flex flex-col items-center justify-center text-center p-6 text-slate-500 space-y-2">
             <div class="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 text-xl">
               <i class="fa-solid fa-hand-holding-hand"></i>
             </div>
             <p class="text-xs font-medium max-w-xs">Kéo & thả **Thiết Bị** (từ bảng giữa) hoặc **Thẻ Nhớ** (từ bảng phải) vào đây để phân bổ cho dự án.</p>
           </div>
-
           <div id="project-items-list" class="space-y-2"></div>
         </div>
-
-        <!-- Project Footer -->
-        <div class="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400 px-1">
-          <span>Tổng dự án: <strong id="project-item-count" class="text-white font-mono font-bold">0</strong> món (<strong id="project-borrowed-count" class="text-amber-400 font-mono font-bold">0</strong> đang mượn, <strong id="project-returned-count" class="text-emerald-400 font-mono font-bold">0</strong> đã bàn giao)</span>
-        </div>
-
       </div>
     </section>
 
-    <!-- ================= PANEL 2 (MIDDLE): KHO TOÀN BỘ THIẾT BỊ ================= -->
+    <!-- PANEL 2 (MIDDLE): EQUIPMENT POOL -->
     <section id="panel-center" class="workspace-panel flex-1 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col min-w-[300px] overflow-hidden relative shadow-2xl">
-      
-      <!-- Header with Red Circle Button -->
       <div id="center-panel-header" class="p-3 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between flex-shrink-0">
         <div class="flex items-center gap-2">
           <div class="w-7 h-7 rounded-lg bg-blue-600/20 text-blue-400 flex items-center justify-center font-bold text-xs border border-blue-500/30">
@@ -242,29 +154,20 @@
           </div>
         </div>
 
-        <!-- RED CIRCLE TOGGLE BUTTON (PANEL 2) -->
-        <button onclick="togglePanel('center')" title="Thu nhỏ / Mở rộng kho thiết bị" class="w-8 h-8 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center shadow-lg shadow-rose-600/40 flex-shrink-0 cursor-pointer border-2 border-rose-400/40 active:scale-90 transition-all">
+        <button onclick="togglePanel('center')" class="w-8 h-8 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center shadow-lg flex-shrink-0 cursor-pointer border-2 border-rose-400/40 active:scale-90 transition-all">
           <i id="red-btn-center-icon" class="fa-solid fa-minus text-xs"></i>
         </button>
       </div>
 
-      <!-- Center Panel Collapsed Bar Indicator -->
-      <div id="center-collapsed-bar" class="hidden flex-1 flex-col items-center justify-between p-3 my-2 mx-auto w-11 bg-slate-950 border border-slate-800 rounded-3xl cursor-pointer hover:border-blue-500/60 hover:bg-blue-950/20 transition-all group shadow-xl" onclick="togglePanel('center')">
-        <div class="w-7 h-7 rounded-full bg-blue-600/20 text-blue-400 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center transition-all flex-shrink-0 border border-blue-500/30">
+      <div id="center-collapsed-bar" class="hidden flex-1 flex-col items-center justify-between p-3 my-2 mx-auto w-11 bg-slate-950 border border-slate-800 rounded-3xl cursor-pointer hover:border-blue-500/60 transition-all group shadow-xl" onclick="togglePanel('center')">
+        <div class="w-7 h-7 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center flex-shrink-0 border border-blue-500/30">
           <i class="fa-solid fa-arrows-left-right text-xs"></i>
         </div>
-        <div class="writing-mode-vertical text-[11px] font-extrabold text-slate-300 tracking-widest uppercase my-auto py-3 select-none group-hover:text-blue-300">
-          KHO THIẾT BỊ
-        </div>
-        <div id="center-collapsed-count" class="font-mono font-black text-xs text-blue-400 bg-blue-950/50 px-1.5 py-0.5 rounded-full border border-blue-800/40 flex-shrink-0">
-          0
-        </div>
+        <div class="writing-mode-vertical text-[11px] font-extrabold text-slate-300 tracking-widest uppercase my-auto py-3">KHO THIẾT BỊ</div>
+        <div id="center-collapsed-count" class="font-mono font-black text-xs text-blue-400 bg-blue-950/50 px-1.5 py-0.5 rounded-full border border-blue-800/40">0</div>
       </div>
 
-      <!-- Center Panel Content -->
       <div id="center-panel-content" class="flex-1 flex flex-col overflow-hidden p-3">
-        
-        <!-- Filters -->
         <div class="grid grid-cols-1 gap-2 mb-3">
           <div class="relative">
             <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
@@ -288,28 +191,12 @@
           </select>
         </div>
 
-        <!-- Inventory List Container -->
-        <div id="inventory-pool-container" 
-             ondragover="handleInventoryDragOver(event)" 
-             ondragenter="handleInventoryDragEnter(event)" 
-             ondragleave="handleInventoryDragLeave(event)" 
-             ondrop="handleDropOnInventory(event)"
-             class="flex-1 overflow-y-auto space-y-2 pr-1 transition-all">
-          <!-- Equipment cards dynamic -->
-        </div>
-
-        <!-- Inventory Footer -->
-        <div class="mt-3 pt-2 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400 px-1">
-          <span>Khả dụng: <strong id="inventory-available-count" class="text-emerald-400 font-mono font-bold">0</strong> | Đang mượn: <strong id="inventory-unavailable-count" class="text-rose-400 font-mono font-bold">0</strong></span>
-        </div>
-
+        <div id="inventory-pool-container" ondragover="handleInventoryDragOver(event)" ondrop="handleDropOnInventory(event)" class="flex-1 overflow-y-auto space-y-2 pr-1 transition-all"></div>
       </div>
     </section>
 
-    <!-- ================= PANEL 3 (RIGHT): DANH SÁCH THẺ NHỚ ================= -->
+    <!-- PANEL 3 (RIGHT): SD CARDS -->
     <section id="panel-right" class="workspace-panel flex-1 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col min-w-[280px] overflow-hidden relative shadow-2xl">
-      
-      <!-- Header with Red Circle Button -->
       <div id="right-panel-header" class="p-3 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between flex-shrink-0">
         <div class="flex items-center gap-2">
           <div class="w-7 h-7 rounded-lg bg-indigo-600/20 text-indigo-400 flex items-center justify-center font-bold text-xs border border-indigo-500/30">
@@ -321,29 +208,20 @@
           </div>
         </div>
 
-        <!-- RED CIRCLE TOGGLE BUTTON (PANEL 3) -->
-        <button onclick="togglePanel('right')" title="Thu nhỏ / Mở rộng kho thẻ nhớ" class="w-8 h-8 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center shadow-lg shadow-rose-600/40 flex-shrink-0 cursor-pointer border-2 border-rose-400/40 active:scale-90 transition-all">
+        <button onclick="togglePanel('right')" class="w-8 h-8 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center shadow-lg flex-shrink-0 cursor-pointer border-2 border-rose-400/40 active:scale-90 transition-all">
           <i id="red-btn-right-icon" class="fa-solid fa-minus text-xs"></i>
         </button>
       </div>
 
-      <!-- Right Panel Collapsed Bar Indicator -->
-      <div id="right-collapsed-bar" class="hidden flex-1 flex-col items-center justify-between p-3 my-2 mx-auto w-11 bg-slate-950 border border-slate-800 rounded-3xl cursor-pointer hover:border-indigo-500/60 hover:bg-indigo-950/20 transition-all group shadow-xl" onclick="togglePanel('right')">
-        <div class="w-7 h-7 rounded-full bg-indigo-600/20 text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white flex items-center justify-center transition-all flex-shrink-0 border border-indigo-500/30">
+      <div id="right-collapsed-bar" class="hidden flex-1 flex-col items-center justify-between p-3 my-2 mx-auto w-11 bg-slate-950 border border-slate-800 rounded-3xl cursor-pointer hover:border-indigo-500/60 transition-all group shadow-xl" onclick="togglePanel('right')">
+        <div class="w-7 h-7 rounded-full bg-indigo-600/20 text-indigo-400 flex items-center justify-center flex-shrink-0 border border-indigo-500/30">
           <i class="fa-solid fa-arrows-left-right text-xs"></i>
         </div>
-        <div class="writing-mode-vertical text-[11px] font-extrabold text-slate-300 tracking-widest uppercase my-auto py-3 select-none group-hover:text-indigo-300">
-          THẺ NHỚ
-        </div>
-        <div id="right-collapsed-count" class="font-mono font-black text-xs text-indigo-400 bg-indigo-950/50 px-1.5 py-0.5 rounded-full border border-indigo-800/40 flex-shrink-0">
-          0
-        </div>
+        <div class="writing-mode-vertical text-[11px] font-extrabold text-slate-300 tracking-widest uppercase my-auto py-3">THẺ NHỚ</div>
+        <div id="right-collapsed-count" class="font-mono font-black text-xs text-indigo-400 bg-indigo-950/50 px-1.5 py-0.5 rounded-full border border-indigo-800/40">0</div>
       </div>
 
-      <!-- Right Panel Content -->
       <div id="right-panel-content" class="flex-1 flex flex-col overflow-hidden p-3">
-        
-        <!-- Filters for SD Cards -->
         <div class="grid grid-cols-1 gap-2 mb-3">
           <div class="relative">
             <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
@@ -358,446 +236,247 @@
           </select>
         </div>
 
-        <!-- SD Card List Container -->
-        <div id="sd-pool-container" 
-             ondragover="handleSDDragOver(event)" 
-             ondragenter="handleSDDragEnter(event)" 
-             ondragleave="handleSDDragLeave(event)" 
-             ondrop="handleDropOnSDPool(event)"
-             class="flex-1 overflow-y-auto space-y-2 pr-1 transition-all">
-          <!-- SD Cards dynamic -->
-        </div>
-
-        <!-- SD Card Footer -->
-        <div class="mt-3 pt-2 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400 px-1">
-          <span>Khả dụng: <strong id="sd-available-count" class="text-emerald-400 font-mono font-bold">0</strong> | Đang dùng: <strong id="sd-unavailable-count" class="text-indigo-400 font-mono font-bold">0</strong></span>
-        </div>
-
+        <div id="sd-pool-container" ondragover="handleSDDragOver(event)" ondrop="handleDropOnSDPool(event)" class="flex-1 overflow-y-auto space-y-2 pr-1 transition-all"></div>
       </div>
     </section>
-
   </main>
 
-  <!-- MODAL 1: EQUIPMENT MODAL -->
+  <!-- MODALS -->
   <div id="modal-equipment" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center hidden p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col">
       <div class="p-4 border-b border-slate-800 flex items-center justify-between">
         <h3 id="modal-eq-title" class="font-bold text-white text-base">Thêm Thiết Bị Mới</h3>
-        <button onclick="closeModal('modal-equipment')" class="text-slate-400 hover:text-white p-1">
-          <i class="fa-solid fa-xmark text-lg"></i>
-        </button>
+        <button onclick="closeModal('modal-equipment')" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
 
-      <form id="form-equipment" onsubmit="saveEquipmentForm(event)" class="p-5 space-y-3 overflow-y-auto flex-1">
-        <input type="hidden" id="eq-original-id" value="">
-
+      <form id="form-equipment" onsubmit="saveEquipmentForm(event)" class="p-5 space-y-3 overflow-y-auto max-h-[80vh]">
+        <input type="hidden" id="eq-original-id">
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-semibold text-slate-300 mb-1">Mã CODE ID *</label>
-            <input type="text" id="eq-id" required placeholder="MM-CAM-S5-1" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 uppercase">
+            <input type="text" id="eq-id" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white uppercase">
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-300 mb-1">Danh Mục *</label>
-            <select id="eq-category" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
-              <option value="Camera">Camera</option>
-              <option value="Lens">Lens</option>
-              <option value="Battery">Battery</option>
-              <option value="Mic Wireless">Mic Wireless</option>
-              <option value="Mic">Mic</option>
-              <option value="Sound Recorder">Sound Recorder</option>
-              <option value="Lighting">Lighting</option>
-              <option value="Monitor">Monitor</option>
-              <option value="Gimbal">Gimbal</option>
-              <option value="Tripod">Tripod</option>
-              <option value="Dock Charge">Dock Charge</option>
-              <option value="Filter">Filter</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-3 gap-3">
-          <div class="col-span-2">
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Tên Model *</label>
-            <input type="text" id="eq-name" required placeholder="Lumix S5..." class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Tình Trạng *</label>
-            <select id="eq-health" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
-              <option value="GOOD">Tốt (100%)</option>
-              <option value="DAMAGED">Hư / Lỗi</option>
-              <option value="MAINTENANCE">Bảo Hành</option>
-              <option value="INCOMPLETE">Thiếu Phụ Kiện</option>
+            <select id="eq-category" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white">
+              <option value="Camera">Camera</option><option value="Lens">Lens</option><option value="Battery">Battery</option>
+              <option value="Mic Wireless">Mic Wireless</option><option value="Mic">Mic</option><option value="Sound Recorder">Sound Recorder</option>
+              <option value="Lighting">Lighting</option><option value="Monitor">Monitor</option><option value="Gimbal">Gimbal</option>
+              <option value="Tripod">Tripod</option><option value="Dock Charge">Dock Charge</option><option value="Filter">Filter</option>
             </select>
           </div>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Ghi Chú</label>
-          <input type="text" id="eq-notes" placeholder="Chi tiết tình trạng..." class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
-        </div>
-
-        <!-- Sub Devices Inputs -->
-        <div class="pt-2 border-t border-slate-800">
-          <div class="flex items-center justify-between mb-2">
-            <label class="text-xs font-bold text-blue-400 uppercase">Thiết Bị Con (Sub-Devices)</label>
-            <button type="button" onclick="addSubDeviceInputRow()" class="px-2 py-1 rounded text-xs bg-slate-800 text-blue-400 hover:text-white border border-slate-700">+ Sub</button>
-          </div>
-          <div id="sub-devices-inputs-container" class="space-y-2 max-h-36 overflow-y-auto pr-1"></div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Tên Model *</label>
+          <input type="text" id="eq-name" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white">
         </div>
 
         <div class="pt-3 border-t border-slate-800 flex justify-between items-center">
-          <button type="button" id="btn-delete-eq" onclick="deleteCurrentEquipment()" class="hidden px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-600/20 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/30">Xóa Máy</button>
+          <button type="button" id="btn-delete-eq" onclick="deleteCurrentEquipment()" class="hidden px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-600/20 text-rose-400">Xóa Máy</button>
           <div class="flex gap-2 ml-auto">
-            <button type="button" onclick="closeModal('modal-equipment')" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:bg-slate-800">Hủy</button>
-            <button type="submit" class="px-4 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white">Lưu Thay Đổi</button>
+            <button type="button" onclick="closeModal('modal-equipment')" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400">Hủy</button>
+            <button type="submit" class="px-4 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white">Lưu Thay Đổi</button>
           </div>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- MODAL 2: SD CARD MODAL -->
   <div id="modal-sd-card" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center hidden p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col">
       <div class="p-4 border-b border-slate-800 flex items-center justify-between">
         <h3 id="modal-sd-title" class="font-bold text-white text-base">Thêm Thẻ Nhớ Mới</h3>
-        <button onclick="closeModal('modal-sd-card')" class="text-slate-400 hover:text-white p-1">
-          <i class="fa-solid fa-xmark text-lg"></i>
-        </button>
+        <button onclick="closeModal('modal-sd-card')" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
 
       <form id="form-sd-card" onsubmit="saveSDCardForm(event)" class="p-5 space-y-3">
-        <input type="hidden" id="sd-original-id" value="">
-
-        <!-- Batch Quantity & Speed Input for Auto Generation -->
+        <input type="hidden" id="sd-original-id">
         <div id="sd-quantity-container" class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Số Lượng Thẻ *</label>
-            <input type="number" id="sd-quantity" min="1" max="100" value="1" required oninput="updateSDIdPreview()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Số Lượng *</label>
+            <input type="number" id="sd-quantity" min="1" max="100" value="1" required oninput="updateSDIdPreview()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Chuẩn Tốc Độ (Speed) *</label>
-            <select id="sd-speed" required onchange="updateSDIdPreview()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
-              <option value="V30">V30 (UHS-I)</option>
-              <option value="V60">V60 (UHS-II)</option>
-              <option value="V90">V90 (High Speed)</option>
-              <option value="AUDIO">AUDIO (Sound)</option>
-              <option value="CFEXPRESS">CFexpress</option>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Speed *</label>
+            <select id="sd-speed" required onchange="updateSDIdPreview()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white">
+              <option value="V30">V30</option><option value="V60">V60</option><option value="V90">V90</option><option value="AUDIO">AUDIO</option>
             </select>
           </div>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div id="sd-id-single-container" class="hidden">
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Mã CODE Thẻ *</label>
-            <input type="text" id="sd-id" readonly class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white uppercase opacity-70">
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Mã CODE *</label>
+            <input type="text" id="sd-id" readonly class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white opacity-70 uppercase">
           </div>
-          <div id="sd-capacity-wrapper">
+          <div>
             <label class="block text-xs font-semibold text-slate-300 mb-1">Dung Lượng *</label>
-            <select id="sd-capacity" required onchange="updateSDIdPreview()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
-              <option value="128GB">128 GB</option>
-              <option value="256GB">256 GB</option>
-              <option value="64GB">64 GB</option>
-              <option value="32GB">32 GB</option>
-              <option value="512GB">512 GB</option>
-            </select>
-          </div>
-          <div id="sd-health-wrapper">
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Tình Trạng *</label>
-            <select id="sd-health" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
-              <option value="GOOD">Tốt (100%)</option>
-              <option value="DAMAGED">Lỗi / Hư</option>
+            <select id="sd-capacity" required onchange="updateSDIdPreview()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white">
+              <option value="128GB">128 GB</option><option value="256GB">256 GB</option><option value="32GB">32 GB</option>
             </select>
           </div>
         </div>
 
-        <!-- Preview Box for auto-generated IDs -->
-        <div id="sd-preview-box" class="bg-indigo-950/50 border border-indigo-800/60 rounded-xl p-3 text-xs text-indigo-200 shadow-inner">
-          <div class="text-[10px] font-bold uppercase tracking-wider text-indigo-400 mb-1 flex items-center gap-1.5">
-            <i class="fa-solid fa-wand-magic-sparkles"></i>
-            <span>Tự Động Sinh Mã CODE Thẻ:</span>
-          </div>
+        <div id="sd-preview-box" class="bg-indigo-950/50 border border-indigo-800/60 rounded-xl p-3 text-xs text-indigo-200">
           <div id="sd-id-preview" class="font-mono font-bold text-white break-all">MM-SD-128GB-V30-1</div>
         </div>
 
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Ghi Chú</label>
-          <input type="text" id="sd-notes" placeholder="Chụp TVC, SanDisk Extreme PRO..." class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
-        </div>
-
         <div class="pt-3 border-t border-slate-800 flex justify-between items-center">
-          <button type="button" id="btn-delete-sd" onclick="deleteCurrentSDCard()" class="hidden px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-600/20 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/30">Xóa Thẻ</button>
+          <button type="button" id="btn-delete-sd" onclick="deleteCurrentSDCard()" class="hidden px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-600/20 text-rose-400">Xóa Thẻ</button>
           <div class="flex gap-2 ml-auto">
-            <button type="button" onclick="closeModal('modal-sd-card')" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:bg-slate-800">Hủy</button>
-            <button type="submit" class="px-4 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white">Lưu Thẻ Nhớ</button>
+            <button type="button" onclick="closeModal('modal-sd-card')" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400">Hủy</button>
+            <button type="submit" class="px-4 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white">Lưu Thẻ</button>
           </div>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- MODAL 3: ADD NEW PROJECT -->
   <div id="modal-add-project" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center hidden p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
-      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
-        <h3 class="font-bold text-white text-base">Tạo Dự Án Mới</h3>
-        <button onclick="closeModal('modal-add-project')" class="text-slate-400 hover:text-white p-1">
-          <i class="fa-solid fa-xmark text-lg"></i>
-        </button>
-      </div>
-
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between"><h3 class="font-bold text-white">Tạo Dự Án Mới</h3><button onclick="closeModal('modal-add-project')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button></div>
       <form id="form-add-project" onsubmit="saveNewProject(event)" class="p-5 space-y-3">
         <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Năm Dự Án *</label>
-            <select id="proj-year" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500"></select>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Ngày Bàn Giao *</label>
-            <input type="date" id="proj-due-date" required onchange="syncProjectYearFromDate(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
-          </div>
+          <div><label class="block text-xs text-slate-300 mb-1">Năm *</label><select id="proj-year" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white"></select></div>
+          <div><label class="block text-xs text-slate-300 mb-1">Ngày Bàn Giao *</label><input type="date" id="proj-due-date" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white"></div>
         </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Tên Dự Án *</label>
-          <input type="text" id="proj-name" required placeholder="Dự án 4 - TVC Commercial..." class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Người Phụ Trách *</label>
-          <input type="text" id="proj-borrower" required placeholder="Chris / Sven / Ha..." class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
-        </div>
-
+        <div><label class="block text-xs text-slate-300 mb-1">Tên Dự Án *</label><input type="text" id="proj-name" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white"></div>
+        <div><label class="block text-xs text-slate-300 mb-1">Người Phụ Trách *</label><input type="text" id="proj-borrower" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white"></div>
         <div class="pt-3 border-t border-slate-800 flex justify-end gap-2">
-          <button type="button" onclick="closeModal('modal-add-project')" class="px-4 py-2 rounded-lg text-xs font-medium text-slate-400 hover:bg-slate-800">Hủy</button>
-          <button type="submit" class="px-4 py-2 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white">Tạo Dự Án</button>
+          <button type="button" onclick="closeModal('modal-add-project')" class="px-4 py-2 rounded-lg text-xs text-slate-400">Hủy</button>
+          <button type="submit" class="px-4 py-2 rounded-lg text-xs bg-blue-600 text-white font-semibold">Tạo Dự Án</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- MODAL 4: PRINT SLIP -->
-  <div id="modal-print-slip" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center hidden p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-      <div class="p-4 border-b border-slate-800 flex items-center justify-between no-print">
-        <h3 class="font-bold text-white text-base">In Phiếu Bàn Giao Thiết Bị & Thẻ Nhớ</h3>
-        <div class="flex items-center gap-2">
-          <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5">
-            <i class="fa-solid fa-print"></i> In Phiếu
-          </button>
-          <button onclick="closeModal('modal-print-slip')" class="text-slate-400 hover:text-white p-1">
-            <i class="fa-solid fa-xmark text-lg"></i>
-          </button>
-        </div>
+  <div id="modal-confirm-delete-project" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center hidden p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-5 space-y-4">
+      <h3 class="text-rose-400 font-bold text-base flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation"></i> Xóa Dự Án?</h3>
+      <p class="text-xs text-slate-300">Tất cả thiết bị đang mượn sẽ tự động hoàn trả về kho.</p>
+      <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
+        <button onclick="closeModal('modal-confirm-delete-project')" class="px-3 py-1.5 text-xs text-slate-400">Hủy</button>
+        <button onclick="executeDeleteCurrentProject()" class="px-4 py-1.5 text-xs font-bold bg-rose-600 text-white rounded-lg">Xóa</button>
       </div>
-
-      <div class="p-6 overflow-y-auto bg-white text-slate-900" id="print-modal-content"></div>
     </div>
   </div>
 
-  <!-- MODAL 5: CONFIRM DELETE PROJECT -->
-  <div id="modal-confirm-delete-project" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center hidden p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl flex flex-col">
-      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
-        <h3 class="font-bold text-white text-base text-rose-400 flex items-center gap-2">
-          <i class="fa-solid fa-triangle-exclamation"></i>
-          <span>Xác Nhận Xóa Dự Án</span>
-        </h3>
-        <button onclick="closeModal('modal-confirm-delete-project')" class="text-slate-400 hover:text-white p-1">
-          <i class="fa-solid fa-xmark text-lg"></i>
-        </button>
-      </div>
-
-      <div class="p-5 space-y-3">
-        <p class="text-xs text-slate-300 leading-relaxed">
-          Bạn có chắc chắn muốn xóa dự án <strong id="delete-proj-name-text" class="text-white">--</strong> không? Hành động này không thể hoàn tác.
-        </p>
-        <p class="text-[11px] text-amber-400 bg-amber-500/10 border border-amber-500/20 p-2 rounded-lg">
-          <i class="fa-solid fa-circle-info mr-1"></i> Tất cả thiết bị và thẻ nhớ đang được mượn trong dự án sẽ tự động được thu hồi về kho (Sẵn sàng).
-        </p>
-      </div>
-
-      <div class="p-4 border-t border-slate-800 bg-slate-950 flex justify-end gap-2">
-        <button type="button" onclick="closeModal('modal-confirm-delete-project')" class="px-4 py-2 rounded-lg text-xs font-medium text-slate-400 hover:bg-slate-800 transition-all">
-          Hủy
-        </button>
-        <button type="button" onclick="executeDeleteCurrentProject()" class="px-4 py-2 rounded-lg text-xs font-semibold bg-rose-600 hover:bg-rose-500 text-white shadow-md shadow-rose-600/20 transition-all">
-          Xóa Dự Án
-        </button>
-      </div>
-    </div>
+  <div id="modal-print-slip" class="fixed inset-0 z-50 bg-slate-950/80 hidden p-4 flex items-center justify-center">
+    <div class="bg-white text-slate-900 p-6 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" id="print-modal-content"></div>
   </div>
 
   <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
-  <!-- Firebase & Firestore Realtime Cloud Database Integration -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+  <!-- SUPABASE INTEGRATION SCRIPT -->
+  <script>
+    // THAY THẾ BẰNG THÔNG TIN SUPABASE CỦA BẠN:
+    const SUPABASE_URL = "https://cvimoskoxqwzfavqxfzi.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_Ou-lgRWpL_gZjLJraQ003g__ISZu4IW";
 
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'equipmentmm-97fc1';
-    
-    // User's Firebase Configuration
-    const firebaseConfig = typeof __firebase_config !== 'undefined' 
-      ? JSON.parse(__firebase_config) 
-      : {
-          apiKey: "AIzaSyC8BlLmH0EOyS1WmLGkHXhBAuToj4kqnIc",
-          authDomain: "equipmentmm-97fc1.firebaseapp.com",
-          projectId: "equipmentmm-97fc1",
-          storageBucket: "equipmentmm-97fc1.firebasestorage.app",
-          messagingSenderId: "877209904706",
-          appId: "1:877209904706:web:5e239c5ad45d419f40afdb",
-          measurementId: "G-CQV7N60LXS"
-        };
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    /* Clean Dynamic State - All data loaded directly from Firebase Firestore */
     window.equipmentList = [];
     window.sdCardList = [];
     window.projectList = [];
-    window.yearsList = [new Date().getFullYear().toString()];
+    window.yearsList = ["2025", "2026"];
     window.activeYear = new Date().getFullYear().toString();
     window.activeProjectId = null;
-    window.expandedEquipmentIds = new Set();
-
-    // Panels collapse state (left, center, right)
     window.panelState = { left: false, center: false, right: false };
 
-    /* Firestore Strict Collection Paths */
-    const eqColRef = collection(db, 'artifacts', appId, 'public', 'data', 'equipment');
-    const sdColRef = collection(db, 'artifacts', appId, 'public', 'data', 'sd_cards');
-    const projColRef = collection(db, 'artifacts', appId, 'public', 'data', 'projects');
-    const settingsDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'years_config');
-
-    /* Helper function to sanitize Firestore document IDs containing forward slashes '/' */
-    function encodeDocId(id) {
-      if (!id) return 'doc_' + Date.now();
-      return String(id).replace(/\//g, '__SLASH__');
-    }
-
     window.addEventListener('DOMContentLoaded', async () => {
-      try {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-          await signInAnonymously(auth);
-        }
-      } catch (err) {
-        console.warn("Auth initialization fallback:", err);
-      }
-
-      onAuthStateChanged(auth, (user) => {
-        if (user) {
-          initRealtimeCloudSync();
-        } else {
-          loadLocalStorageFallback();
-          renderAllWorkspaceViews();
-        }
-      });
+      await fetchAllDataFromSupabase();
+      subscribeRealtimeChanges();
     });
 
-    function initRealtimeCloudSync() {
-      // 1. Sync Equipment Collection directly from Firebase
-      onSnapshot(eqColRef, (snapshot) => {
-        window.equipmentList = snapshot.docs.map(doc => doc.data());
-        renderAllWorkspaceViews();
-      }, (err) => console.error("Eq Sync Error:", err));
+    // 1. TẢI DỮ LIỆU BAN ĐẦU
+    async function fetchAllDataFromSupabase() {
+      try {
+        const [eqRes, sdRes, projRes, yrRes] = await Promise.all([
+          supabase.from('equipment').select('*'),
+          supabase.from('sd_cards').select('*'),
+          supabase.from('projects').select('*'),
+          supabase.from('years_config').select('*').single()
+        ]);
 
-      // 2. Sync SD Cards Collection directly from Firebase
-      onSnapshot(sdColRef, (snapshot) => {
-        window.sdCardList = snapshot.docs.map(doc => doc.data());
-        renderAllWorkspaceViews();
-      }, (err) => console.error("SD Sync Error:", err));
+        if (eqRes.data) window.equipmentList = eqRes.data;
+        if (sdRes.data) window.sdCardList = sdRes.data;
+        if (projRes.data) window.projectList = projRes.data;
+        if (yrRes.data && yrRes.data.years) window.yearsList = yrRes.data.years;
 
-      // 3. Sync Projects Collection directly from Firebase
-      onSnapshot(projColRef, (snapshot) => {
-        window.projectList = snapshot.docs.map(doc => doc.data());
-        
-        // Re-evaluate Active Project ID if needed
-        const projectsInYear = window.projectList.filter(p => p.year && p.year.toString() === window.activeYear.toString());
-        if (!projectsInYear.some(p => p.id === window.activeProjectId)) {
-          window.activeProjectId = projectsInYear.length > 0 ? projectsInYear[0].id : null;
+        const projectsInYear = window.projectList.filter(p => p.year === window.activeYear);
+        if (projectsInYear.length > 0 && !window.activeProjectId) {
+          window.activeProjectId = projectsInYear[0].id;
         }
-        renderAllWorkspaceViews();
-      }, (err) => console.error("Proj Sync Error:", err));
 
-      // 4. Sync Years Config directly from Firebase
-      onSnapshot(settingsDocRef, (docSnap) => {
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          if (data && data.years && data.years.length > 0) {
-            window.yearsList = data.years;
-          }
-        }
         renderAllWorkspaceViews();
-      }, (err) => console.error("Years Sync Error:", err));
+      } catch (err) {
+        console.error("Supabase fetch error:", err);
+      }
     }
 
-    function loadLocalStorageFallback() {
-      const eq = localStorage.getItem('mm_prodgear_eq_v6');
-      const sd = localStorage.getItem('mm_prodgear_sd_v6');
-      const pr = localStorage.getItem('mm_prodgear_pr_v6');
-      const yr = localStorage.getItem('mm_prodgear_yr_v6');
-
-      window.equipmentList = eq ? JSON.parse(eq) : [];
-      window.sdCardList = sd ? JSON.parse(sd) : [];
-      window.projectList = pr ? JSON.parse(pr) : [];
-      window.yearsList = yr ? JSON.parse(yr) : [new Date().getFullYear().toString()];
+    // 2. BẬT ĐỒNG BỘ THỜI GIAN THỰC (REALTIME)
+    function subscribeRealtimeChanges() {
+      supabase.channel('public-db-changes')
+        .on('postgres_changes', { event: '*', schema: 'public' }, () => {
+          fetchAllDataFromSupabase();
+        })
+        .subscribe();
     }
 
-    window.syncEquipmentToCloud = async function(item) {
-      if (auth.currentUser) {
-        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'equipment', encodeDocId(item.id)), item);
-      }
-      localStorage.setItem('mm_prodgear_eq_v6', JSON.stringify(window.equipmentList));
+    // 3. CÁC HÀM ĐỒNG BỘ CSDL SUPABASE
+    window.syncEquipmentToCloud = async (item) => {
+      await supabase.from('equipment').upsert({
+        id: item.id,
+        name: item.name,
+        category: item.category,
+        status: item.status,
+        health_status: item.healthStatus || 'GOOD',
+        current_project: item.currentProject || null,
+        note: item.note || '',
+        sub_devices: item.subDevices || []
+      });
     };
 
-    window.deleteEquipmentFromCloud = async function(itemId) {
-      if (auth.currentUser) {
-        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'equipment', encodeDocId(itemId)));
-      }
-      localStorage.setItem('mm_prodgear_eq_v6', JSON.stringify(window.equipmentList));
+    window.deleteEquipmentFromCloud = async (id) => {
+      await supabase.from('equipment').delete().eq('id', id);
     };
 
-    window.syncSDCardToCloud = async function(card) {
-      if (auth.currentUser) {
-        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'sd_cards', encodeDocId(card.id)), card);
-      }
-      localStorage.setItem('mm_prodgear_sd_v6', JSON.stringify(window.sdCardList));
+    window.syncSDCardToCloud = async (card) => {
+      await supabase.from('sd_cards').upsert({
+        id: card.id,
+        capacity: card.capacity,
+        status: card.status,
+        health_status: card.healthStatus || 'GOOD',
+        current_project: card.currentProject || null,
+        note: card.note || ''
+      });
     };
 
-    window.deleteSDCardFromCloud = async function(cardId) {
-      if (auth.currentUser) {
-        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'sd_cards', encodeDocId(cardId)));
-      }
-      localStorage.setItem('mm_prodgear_sd_v6', JSON.stringify(window.sdCardList));
+    window.deleteSDCardFromCloud = async (id) => {
+      await supabase.from('sd_cards').delete().eq('id', id);
     };
 
-    window.syncProjectToCloud = async function(proj) {
-      if (auth.currentUser) {
-        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'projects', encodeDocId(proj.id)), proj);
-      }
-      localStorage.setItem('mm_prodgear_pr_v6', JSON.stringify(window.projectList));
+    window.syncProjectToCloud = async (proj) => {
+      await supabase.from('projects').upsert({
+        id: proj.id,
+        name: proj.name,
+        year: proj.year,
+        borrower: proj.borrower,
+        handover_date: proj.handoverDate,
+        items: proj.items || []
+      });
     };
 
-    window.deleteProjectFromCloud = async function(projId) {
-      if (auth.currentUser) {
-        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'projects', encodeDocId(projId)));
-      }
-      localStorage.setItem('mm_prodgear_pr_v6', JSON.stringify(window.projectList));
+    window.deleteProjectFromCloud = async (id) => {
+      await supabase.from('projects').delete().eq('id', id);
     };
 
-    window.syncYearsToCloud = async function() {
-      if (auth.currentUser) {
-        await setDoc(settingsDocRef, { years: window.yearsList });
-      }
-      localStorage.setItem('mm_prodgear_yr_v6', JSON.stringify(window.yearsList));
+    window.syncYearsToCloud = async () => {
+      await supabase.from('years_config').upsert({ id: 1, years: window.yearsList });
     };
 
+    // 4. RENDER UI FUNCTIONS
     window.renderAllWorkspaceViews = function() {
       renderYearTabs();
       renderProjectTabs();
@@ -807,1078 +486,254 @@
       updateCollapsedCounts();
     };
 
-    window.updateCollapsedCounts = function() {
-      const leftCount = document.getElementById('left-collapsed-count');
-      const centerCount = document.getElementById('center-collapsed-count');
-      const rightCount = document.getElementById('right-collapsed-count');
-
-      const activeProj = window.projectList.find(p => p.id === window.activeProjectId);
-      if (leftCount) leftCount.innerText = activeProj && activeProj.items ? activeProj.items.length : 0;
-      if (centerCount) centerCount.innerText = window.equipmentList ? window.equipmentList.length : 0;
-      if (rightCount) rightCount.innerText = window.sdCardList ? window.sdCardList.length : 0;
-    };
-
-    window.togglePanel = function(side) {
-      const panel = document.getElementById(`panel-${side}`);
-      const header = document.getElementById(`${side}-panel-header`);
-      const content = document.getElementById(`${side}-panel-content`);
-      const collapsedBar = document.getElementById(`${side}-collapsed-bar`);
-      const icon = document.getElementById(`red-btn-${side}-icon`);
-
-      window.panelState[side] = !window.panelState[side];
-
-      if (window.panelState[side]) {
-        panel.classList.remove('flex-1');
-        panel.classList.add('w-14', 'min-w-[56px]');
-        if (header) header.classList.add('hidden');
-        if (content) content.classList.add('hidden');
-        if (collapsedBar) {
-          collapsedBar.classList.remove('hidden');
-          collapsedBar.classList.add('flex');
-        }
-        if (icon) icon.className = "fa-solid fa-expand text-xs";
-      } else {
-        panel.classList.add('flex-1');
-        panel.classList.remove('w-14', 'min-w-[56px]');
-        if (header) header.classList.remove('hidden');
-        if (content) content.classList.remove('hidden');
-        if (collapsedBar) {
-          collapsedBar.classList.add('hidden');
-          collapsedBar.classList.remove('flex');
-        }
-        if (icon) icon.className = "fa-solid fa-minus text-xs";
-      }
-
-      window.updateCollapsedCounts();
-    };
-
-    window.filterProjectsBySearch = function(query) {
-      const term = query.trim().toLowerCase();
-      if (!term) {
-        renderProjectTabs();
-        return;
-      }
-
-      const matchedProj = window.projectList.find(p => p.name.toLowerCase().includes(term) || (p.borrower && p.borrower.toLowerCase().includes(term)));
-      if (matchedProj) {
-        window.activeYear = matchedProj.year;
-        window.activeProjectId = matchedProj.id;
-        window.renderAllWorkspaceViews();
-      }
-    };
-
     function renderYearTabs() {
       const container = document.getElementById('year-tabs-container');
       if (!container) return;
-
       container.innerHTML = window.yearsList.map(yr => {
-        const isActive = yr.toString() === window.activeYear.toString();
-        const countProjects = window.projectList.filter(p => p.year.toString() === yr.toString()).length;
-
-        return `
-          <button onclick="selectActiveYear('${yr}')" 
-                  class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 flex-shrink-0 ${isActive ? 'bg-blue-600 text-white shadow' : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'}">
-            <span>${yr}</span>
-            <span class="text-[9px] px-1.5 py-0.2 rounded-full ${isActive ? 'bg-blue-800 text-blue-100' : 'bg-slate-800 text-slate-400'}">${countProjects}</span>
-          </button>
-        `;
+        const isActive = yr === window.activeYear;
+        return `<button onclick="window.activeYear='${yr}'; window.renderAllWorkspaceViews()" class="px-2.5 py-1 rounded-lg text-xs font-bold ${isActive ? 'bg-blue-600 text-white' : 'bg-slate-950 text-slate-400 border border-slate-800'}">${yr}</button>`;
       }).join('');
     }
-
-    window.selectActiveYear = function(yr) {
-      window.activeYear = yr.toString();
-      const projectsInYear = window.projectList.filter(p => p.year.toString() === window.activeYear);
-      window.activeProjectId = projectsInYear.length > 0 ? projectsInYear[0].id : null;
-      window.renderAllWorkspaceViews();
-    };
-
-    window.addNewYearPrompt = function() {
-      const newYear = prompt("Nhập năm quản lý dự án mới (VD: 2027):", (parseInt(window.activeYear) + 1).toString());
-      if (newYear && newYear.trim() !== "") {
-        const formattedYear = newYear.trim();
-        if (!window.yearsList.includes(formattedYear)) {
-          window.yearsList.push(formattedYear);
-          window.yearsList.sort((a, b) => b.localeCompare(a));
-          window.syncYearsToCloud();
-        }
-        window.activeYear = formattedYear;
-        window.renderAllWorkspaceViews();
-      }
-    };
 
     function renderProjectTabs() {
       const container = document.getElementById('project-tabs-container');
       if (!container) return;
-
-      const projectsInYear = window.projectList.filter(p => p.year.toString() === window.activeYear.toString());
-
-      let html = projectsInYear.map(proj => {
-        const isActive = proj.id === window.activeProjectId;
-        const borrowedCount = proj.items ? proj.items.filter(i => i.status === 'BORROWED').length : 0;
-        
-        return `
-          <button onclick="selectActiveProject('${proj.id}')" 
-                  class="px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all flex-shrink-0 ${isActive ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-950 text-slate-400 hover:text-slate-200 border border-slate-800'}">
-            <span class="truncate max-w-[100px]">${proj.name}</span>
-            <span class="text-[9px] px-1.5 py-0.2 rounded-full font-extrabold ${isActive ? 'bg-blue-800 text-blue-100' : 'bg-slate-800 text-slate-300'}">${borrowedCount}</span>
-          </button>
-        `;
-      }).join('');
-
-      html += `
-        <button onclick="openAddProjectModal()" title="Thêm dự án" class="px-2 py-1.5 rounded-xl text-xs font-bold bg-slate-950 text-blue-400 border border-slate-800 hover:bg-slate-800 transition-all flex-shrink-0">
-          + Dự án
-        </button>
-      `;
-
-      container.innerHTML = html;
+      const projs = window.projectList.filter(p => p.year === window.activeYear);
+      if (!projs.some(p => p.id === window.activeProjectId)) {
+        window.activeProjectId = projs.length > 0 ? projs[0].id : null;
+      }
+      container.innerHTML = projs.map(p => {
+        const isActive = p.id === window.activeProjectId;
+        return `<button onclick="window.activeProjectId='${p.id}'; window.renderAllWorkspaceViews()" class="px-2.5 py-1.5 rounded-xl text-xs font-bold ${isActive ? 'bg-blue-600 text-white' : 'bg-slate-950 text-slate-400 border border-slate-800'}">${p.name}</button>`;
+      }).join('') + `<button onclick="openAddProjectModal()" class="px-2 py-1.5 rounded-xl text-xs font-bold bg-slate-950 text-blue-400 border border-slate-800">+ Dự án</button>`;
     }
 
-    window.selectActiveProject = function(projId) {
-      window.activeProjectId = projId;
-      window.renderAllWorkspaceViews();
-    };
-
     function renderActiveProjectContent() {
-      const proj = window.projectList.find(p => p.id === window.activeProjectId);
-      
-      const titleEl = document.getElementById('active-project-title');
-      const badgeEl = document.getElementById('active-project-status-badge');
-      const metaEl = document.getElementById('active-project-meta');
-      const itemsContainer = document.getElementById('project-items-list');
-      const emptyPrompt = document.getElementById('drop-zone-empty-prompt');
-      
-      const countTotalEl = document.getElementById('project-item-count');
-      const countBorrowedEl = document.getElementById('project-borrowed-count');
-      const countReturnedEl = document.getElementById('project-returned-count');
+      const p = window.projectList.find(x => x.id === window.activeProjectId);
+      const title = document.getElementById('active-project-title');
+      const meta = document.getElementById('active-project-meta');
+      const list = document.getElementById('project-items-list');
+      const empty = document.getElementById('drop-zone-empty-prompt');
 
-      if (!proj) {
-        if (titleEl) titleEl.innerText = "Chưa có dự án";
-        if (badgeEl) badgeEl.innerText = "Trống";
-        if (metaEl) metaEl.innerText = "Bấm '+ Dự án' để khởi tạo.";
-        if (itemsContainer) itemsContainer.innerHTML = "";
-        if (emptyPrompt) emptyPrompt.classList.remove('hidden');
+      if (!p) {
+        if (title) title.innerText = "Chưa chọn dự án";
+        if (meta) meta.innerText = "--";
+        if (list) list.innerHTML = "";
+        if (empty) empty.classList.remove('hidden');
         return;
       }
 
-      const borrowedItems = proj.items ? proj.items.filter(i => i.status === 'BORROWED') : [];
-      const returnedItems = proj.items ? proj.items.filter(i => i.status === 'RETURNED') : [];
+      if (title) title.innerText = p.name;
+      if (meta) meta.innerText = `Phụ trách: ${p.borrower || 'N/A'} | Bàn giao: ${p.handover_date || p.handoverDate || 'N/A'}`;
 
-      if (titleEl) titleEl.innerText = proj.name;
-      if (metaEl) metaEl.innerText = `Phụ trách: ${proj.borrower || 'N/A'} | Bàn giao: ${proj.handoverDate || 'N/A'}`;
-
-      if (badgeEl) {
-        if (borrowedItems.length > 0) {
-          badgeEl.className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30";
-          badgeEl.innerText = `Đang mượn ${borrowedItems.length} món`;
-        } else if (proj.items && proj.items.length > 0) {
-          badgeEl.className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
-          badgeEl.innerText = "Đã Bàn Giao Hết";
-        } else {
-          badgeEl.className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700";
-          badgeEl.innerText = "Chưa có món nào";
-        }
-      }
-
-      if (countTotalEl) countTotalEl.innerText = proj.items ? proj.items.length : 0;
-      if (countBorrowedEl) countBorrowedEl.innerText = borrowedItems.length;
-      if (countReturnedEl) countReturnedEl.innerText = returnedItems.length;
-
-      if (!proj.items || proj.items.length === 0) {
-        if (emptyPrompt) emptyPrompt.classList.remove('hidden');
-        if (itemsContainer) itemsContainer.innerHTML = "";
+      if (!p.items || p.items.length === 0) {
+        if (empty) empty.classList.remove('hidden');
+        if (list) list.innerHTML = "";
         return;
       }
 
-      if (emptyPrompt) emptyPrompt.classList.add('hidden');
-
-      if (itemsContainer) {
-        itemsContainer.innerHTML = proj.items.map(item => {
-          const isBorrowed = item.status === 'BORROWED';
-          const isSD = item.itemType === 'SD_CARD';
-
-          return `
-            <div draggable="${isBorrowed}"
-                 ondragstart="handleProjectItemDragStart(event, '${item.id}', '${item.itemType || 'EQUIPMENT'}')"
-                 ondragend="handleDragEnd(event)"
-                 class="bg-slate-900 border ${isBorrowed ? 'border-amber-500/30 bg-amber-500/5' : 'border-emerald-500/30 bg-emerald-500/5 opacity-80'} p-2.5 rounded-xl flex items-center justify-between gap-2 transition-all ${isBorrowed ? 'cursor-grab' : ''}">
-              
-              <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                <div class="w-7 h-7 rounded-lg ${isSD ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30' : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'} flex items-center justify-center font-bold text-xs flex-shrink-0">
-                  <i class="fa-solid ${isSD ? 'fa-sd-card' : 'fa-film'}"></i>
-                </div>
-
-                <div class="min-w-0 flex-1">
-                  <div class="font-bold text-white text-xs truncate flex items-center gap-1.5">
-                    <span>${item.name}</span>
-                    <span class="px-1.5 py-0.2 rounded text-[8px] font-bold ${isSD ? 'bg-indigo-500/20 text-indigo-300' : 'bg-blue-500/20 text-blue-300'}">
-                      ${isSD ? 'Thẻ Nhớ' : 'Thiết Bị'}
-                    </span>
-                  </div>
-                  <div class="text-[10px] text-slate-400 font-mono mt-0.5">
-                    CODE: <strong class="text-blue-400">${item.id}</strong> ${isSD ? `| ${item.capacity}` : ''}
-                  </div>
-                </div>
-              </div>
-
-              <div class="flex items-center gap-1 flex-shrink-0">
-                ${isBorrowed ? `
-                  <button onclick="returnSingleItem('${item.id}', '${item.itemType || 'EQUIPMENT'}')" title="Bàn giao về kho" class="bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/30 px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1 transition-all">
-                    <i class="fa-solid fa-box-archive"></i> Trả Kho
-                  </button>
-                  <div title="Kéo thả về kho" class="text-slate-500 hover:text-amber-400 text-xs p-1 cursor-grab">
-                    <i class="fa-solid fa-grip-vertical"></i>
-                  </div>
-                ` : `
-                  <span class="text-[10px] font-semibold text-emerald-400">
-                    <i class="fa-solid fa-circle-check"></i> Đã Trả
-                  </span>
-                `}
-              </div>
+      if (empty) empty.classList.add('hidden');
+      if (list) {
+        list.innerHTML = p.items.map(i => `
+          <div class="bg-slate-900 border border-slate-800 p-2.5 rounded-xl flex justify-between items-center text-xs">
+            <div>
+              <div class="font-bold text-white">${i.name}</div>
+              <div class="text-[10px] text-slate-400">${i.id}</div>
             </div>
-          `;
-        }).join('');
+            <button onclick="returnSingleItem('${i.id}', '${i.itemType}')" class="px-2 py-1 bg-emerald-600/20 text-emerald-400 rounded text-[10px] font-bold">Trả Kho</button>
+          </div>
+        `).join('');
       }
     }
 
     function renderInventoryPool() {
       const container = document.getElementById('inventory-pool-container');
-      const searchInput = document.getElementById('inventory-search');
-      const catFilter = document.getElementById('inventory-category-filter');
-      const availCountEl = document.getElementById('inventory-available-count');
-      const unavailCountEl = document.getElementById('inventory-unavailable-count');
-
       if (!container) return;
-
-      const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
-      const selectedCategory = catFilter ? catFilter.value : 'ALL';
-
-      let filtered = window.equipmentList.filter(item => {
-        const matchesSearch = item.name.toLowerCase().includes(query) || item.id.toLowerCase().includes(query);
-        const matchesCat = selectedCategory === 'ALL' || item.category === selectedCategory;
-        return matchesSearch && matchesCat;
-      });
-
-      if (availCountEl) availCountEl.innerText = window.equipmentList.filter(i => i.status === 'AVAILABLE').length;
-      if (unavailCountEl) unavailCountEl.innerText = window.equipmentList.filter(i => i.status === 'UNAVAILABLE').length;
-
-      if (filtered.length === 0) {
-        container.innerHTML = `<div class="text-center p-6 text-slate-500 text-xs"><i class="fa-solid fa-box-open text-xl mb-1 block"></i>Không tìm thấy thiết bị</div>`;
-        return;
-      }
-
-      container.innerHTML = filtered.map(item => {
-        const isAvail = item.status === 'AVAILABLE';
-        const isExpanded = window.expandedEquipmentIds.has(item.id);
-        const hasSub = item.subDevices && item.subDevices.length > 0;
-
-        return `
-          <div class="bg-slate-900 border ${isAvail ? 'border-slate-800 hover:border-slate-700' : 'border-slate-800 opacity-60'} p-2.5 rounded-xl transition-all"
-               draggable="${isAvail}"
-               ondragstart="handleEquipmentDragStart(event, '${item.id}')"
-               ondragend="handleDragEnd(event)">
-            
-            <div class="flex items-start justify-between gap-2">
-              <div class="min-w-0 flex-1">
-                <div class="flex items-center gap-1.5 flex-wrap">
-                  <span class="font-extrabold text-white text-xs truncate">${item.name}</span>
-                  ${!isAvail ? `
-                    <span class="px-1.5 py-0.2 rounded text-[8px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
-                      Đang ở: ${item.currentProject || 'Dự án'}
-                    </span>
-                  ` : ''}
-                </div>
-
-                <div class="text-[10px] text-slate-400 font-mono mt-1">
-                  CODE: <strong class="text-blue-400">${item.id}</strong> • ${item.category}
-                </div>
-              </div>
-
-              <div class="flex items-center gap-1 flex-shrink-0">
-                ${hasSub ? `
-                  <button onclick="toggleSubDevices('${item.id}')" title="Xem sub" class="p-1 rounded bg-slate-800 text-slate-300 text-[10px]">
-                    <i class="fa-solid ${isExpanded ? 'fa-chevron-up' : 'fa-chevron-down'}"></i>
-                  </button>
-                ` : ''}
-
-                <button onclick="openEquipmentModal('${item.id}')" title="Sửa" class="p-1 rounded bg-slate-800 text-slate-400 hover:text-white text-[10px]">
-                  <i class="fa-solid fa-pen"></i>
-                </button>
-
-                ${isAvail ? `
-                  <div title="Kéo sang dự án" class="p-1 text-slate-600 hover:text-blue-400 cursor-grab text-xs">
-                    <i class="fa-solid fa-grip-vertical"></i>
-                  </div>
-                ` : ''}
-              </div>
-            </div>
-
-            ${hasSub && isExpanded ? `
-              <div class="mt-2 pt-2 border-t border-slate-800/80 space-y-1 pl-3">
-                ${item.subDevices.map(sub => `
-                  <div class="flex items-center justify-between text-[10px] bg-slate-950 p-1 rounded border border-slate-800/50">
-                    <span class="text-slate-300">${sub.name} <strong class="text-slate-500">(${sub.id})</strong></span>
-                  </div>
-                `).join('')}
-              </div>
-            ` : ''}
+      container.innerHTML = window.equipmentList.map(i => `
+        <div draggable="${i.status === 'AVAILABLE'}" ondragstart="handleEquipmentDragStart(event, '${i.id}')" class="bg-slate-900 border border-slate-800 p-2.5 rounded-xl text-xs flex justify-between items-center ${i.status !== 'AVAILABLE' ? 'opacity-50' : ''}">
+          <div>
+            <div class="font-bold text-white">${i.name}</div>
+            <div class="text-[10px] text-slate-400">${i.id} • ${i.category}</div>
           </div>
-        `;
-      }).join('');
+          <button onclick="openEquipmentModal('${i.id}')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-pen"></i></button>
+        </div>
+      `).join('');
     }
-
-    window.toggleSubDevices = function(id) {
-      if (window.expandedEquipmentIds.has(id)) window.expandedEquipmentIds.delete(id);
-      else window.expandedEquipmentIds.add(id);
-      renderInventoryPool();
-    };
 
     function renderSDCardPool() {
       const container = document.getElementById('sd-pool-container');
-      const searchInput = document.getElementById('sd-search');
-      const capFilter = document.getElementById('sd-capacity-filter');
-      const availCountEl = document.getElementById('sd-available-count');
-      const unavailCountEl = document.getElementById('sd-unavailable-count');
-
       if (!container) return;
-
-      const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
-      const selectedCap = capFilter ? capFilter.value : 'ALL';
-
-      let filtered = window.sdCardList.filter(card => {
-        const matchesSearch = card.id.toLowerCase().includes(query) || (card.note && card.note.toLowerCase().includes(query));
-        const matchesCap = selectedCap === 'ALL' || card.capacity === selectedCap;
-        return matchesSearch && matchesCap;
-      });
-
-      if (availCountEl) availCountEl.innerText = window.sdCardList.filter(i => i.status === 'AVAILABLE').length;
-      if (unavailCountEl) unavailCountEl.innerText = window.sdCardList.filter(i => i.status === 'UNAVAILABLE').length;
-
-      if (filtered.length === 0) {
-        container.innerHTML = `<div class="text-center p-6 text-slate-500 text-xs"><i class="fa-solid fa-sd-card text-xl mb-1 block"></i>Không tìm thấy thẻ nhớ</div>`;
-        return;
-      }
-
-      container.innerHTML = filtered.map(card => {
-        const isAvail = card.status === 'AVAILABLE';
-
-        return `
-          <div class="bg-slate-900 border ${isAvail ? 'border-slate-800 hover:border-slate-700' : 'border-slate-800 opacity-60'} p-2.5 rounded-xl transition-all"
-               draggable="${isAvail}"
-               ondragstart="handleSDCardDragStart(event, '${card.id}')"
-               ondragend="handleDragEnd(event)">
-            
-            <div class="flex items-start justify-between gap-2">
-              <div class="min-w-0 flex-1">
-                <div class="flex items-center gap-1.5 flex-wrap">
-                  <span class="font-extrabold text-indigo-400 text-xs truncate">${card.id}</span>
-                  <span class="px-1.5 py-0.2 rounded text-[8px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                    ${card.capacity}
-                  </span>
-                  ${!isAvail ? `
-                    <span class="px-1.5 py-0.2 rounded text-[8px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
-                      Đang ở: ${card.currentProject || 'Dự án'}
-                    </span>
-                  ` : ''}
-                </div>
-
-                <div class="text-[10px] text-slate-400 mt-0.5">
-                  ${card.note || 'Thẻ chuẩn quay Media Mice'}
-                </div>
-              </div>
-
-              <div class="flex items-center gap-1 flex-shrink-0">
-                <button onclick="openSDCardModal('${card.id}')" title="Sửa thẻ" class="p-1 rounded bg-slate-800 text-slate-400 hover:text-white text-[10px]">
-                  <i class="fa-solid fa-pen"></i>
-                </button>
-
-                ${isAvail ? `
-                  <div title="Kéo sang dự án" class="p-1 text-slate-600 hover:text-indigo-400 cursor-grab text-xs">
-                    <i class="fa-solid fa-grip-vertical"></i>
-                  </div>
-                ` : ''}
-              </div>
-            </div>
+      container.innerHTML = window.sdCardList.map(c => `
+        <div draggable="${c.status === 'AVAILABLE'}" ondragstart="handleSDCardDragStart(event, '${c.id}')" class="bg-slate-900 border border-slate-800 p-2.5 rounded-xl text-xs flex justify-between items-center ${c.status !== 'AVAILABLE' ? 'opacity-50' : ''}">
+          <div>
+            <div class="font-bold text-indigo-400">${c.id}</div>
+            <div class="text-[10px] text-slate-400">${c.capacity}</div>
           </div>
-        `;
-      }).join('');
+          <button onclick="openSDCardModal('${c.id}')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-pen"></i></button>
+        </div>
+      `).join('');
     }
 
-    window.handleEquipmentDragStart = function(e, itemId) {
-      e.target.classList.add('dragging-card');
-      const payload = { type: 'EQUIPMENT_TO_PROJECT', itemId: itemId };
-      e.dataTransfer.setData('text/plain', JSON.stringify(payload));
-    };
-
-    window.handleSDCardDragStart = function(e, cardId) {
-      e.target.classList.add('dragging-card');
-      const payload = { type: 'SD_TO_PROJECT', cardId: cardId };
-      e.dataTransfer.setData('text/plain', JSON.stringify(payload));
-    };
-
-    window.handleProjectItemDragStart = function(e, itemId, itemType) {
-      e.target.classList.add('dragging-card');
-      const payload = { type: 'PROJECT_TO_POOL', itemId: itemId, itemType: itemType, projectId: window.activeProjectId };
-      e.dataTransfer.setData('text/plain', JSON.stringify(payload));
-    };
-
-    window.handleDragEnd = function(e) {
-      e.target.classList.remove('dragging-card');
-    };
-
-    window.handleDragOver = function(e) { e.preventDefault(); };
-    window.handleDragEnter = function(e) {
+    // DRAG & DROP
+    window.handleEquipmentDragStart = (e, id) => e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'EQUIPMENT', id }));
+    window.handleSDCardDragStart = (e, id) => e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'SD_CARD', id }));
+    window.handleDragOver = e => e.preventDefault();
+    
+    window.handleDropOnProject = async e => {
       e.preventDefault();
-      document.getElementById('project-drop-zone')?.classList.add('drop-zone-active');
-    };
-    window.handleDragLeave = function(e) {
-      document.getElementById('project-drop-zone')?.classList.remove('drop-zone-active');
-    };
-
-    window.handleDropOnProject = async function(e) {
-      e.preventDefault();
-      document.getElementById('project-drop-zone')?.classList.remove('drop-zone-active');
-
-      const activeProj = window.projectList.find(p => p.id === window.activeProjectId);
-      if (!activeProj) {
-        showToast("Vui lòng chọn 1 dự án trước!", "error");
-        return;
-      }
-
-      try {
-        const rawData = e.dataTransfer.getData('text/plain');
-        if (!rawData) return;
-        const payload = JSON.parse(rawData);
-
-        if (payload.type === 'EQUIPMENT_TO_PROJECT') {
-          const item = window.equipmentList.find(i => i.id === payload.itemId);
-          if (item && item.status === 'AVAILABLE') {
-            item.status = 'UNAVAILABLE';
-            item.currentProject = activeProj.name;
-
-            activeProj.items.push({
-              id: item.id,
-              name: item.name,
-              itemType: 'EQUIPMENT',
-              status: 'BORROWED'
-            });
-
-            await window.syncEquipmentToCloud(item);
-            await window.syncProjectToCloud(activeProj);
-            window.renderAllWorkspaceViews();
-            showToast(`Đã thêm máy ${item.name} vào dự án!`, 'success');
-          }
-        } else if (payload.type === 'SD_TO_PROJECT') {
-          const card = window.sdCardList.find(c => c.id === payload.cardId);
-          if (card && card.status === 'AVAILABLE') {
-            card.status = 'UNAVAILABLE';
-            card.currentProject = activeProj.name;
-
-            activeProj.items.push({
-              id: card.id,
-              name: `Thẻ ${card.id}`,
-              capacity: card.capacity,
-              itemType: 'SD_CARD',
-              status: 'BORROWED'
-            });
-
-            await window.syncSDCardToCloud(card);
-            await window.syncProjectToCloud(activeProj);
-            window.renderAllWorkspaceViews();
-            showToast(`Đã thêm thẻ ${card.id} vào dự án!`, 'success');
-          }
-        }
-      } catch (err) {
-        console.error("Drop error:", err);
-      }
-    };
-
-    window.handleInventoryDragOver = function(e) { e.preventDefault(); };
-    window.handleInventoryDragEnter = function(e) { e.preventDefault(); };
-    window.handleInventoryDragLeave = function(e) {};
-    window.handleDropOnInventory = function(e) {
-      e.preventDefault();
-      handleReturnToPool(e, 'EQUIPMENT');
-    };
-
-    window.handleSDDragOver = function(e) { e.preventDefault(); };
-    window.handleSDDragEnter = function(e) { e.preventDefault(); };
-    window.handleSDDragLeave = function(e) {};
-    window.handleDropOnSDPool = function(e) {
-      e.preventDefault();
-      handleReturnToPool(e, 'SD_CARD');
-    };
-
-    function handleReturnToPool(e, targetType) {
-      try {
-        const rawData = e.dataTransfer.getData('text/plain');
-        if (!rawData) return;
-        const payload = JSON.parse(rawData);
-
-        if (payload.type === 'PROJECT_TO_POOL') {
-          removeDraggedItemFromProject(payload.itemId, payload.itemType, payload.projectId);
-        }
-      } catch (err) {
-        console.error("Pool return drop error:", err);
-      }
-    }
-
-    async function removeDraggedItemFromProject(itemId, itemType, projectId) {
-      const projId = projectId || window.activeProjectId;
-      const proj = window.projectList.find(p => p.id === projId);
-      if (!proj) return;
-
-      const itemIdx = proj.items.findIndex(i => i.id === itemId);
-      if (itemIdx !== -1) {
-        const removedItem = proj.items[itemIdx];
-        proj.items.splice(itemIdx, 1);
-
-        if (itemType === 'SD_CARD' || removedItem.itemType === 'SD_CARD') {
-          const sd = window.sdCardList.find(c => c.id === itemId);
-          if (sd) { 
-            sd.status = 'AVAILABLE'; 
-            sd.currentProject = null; 
-            await window.syncSDCardToCloud(sd);
-          }
-        } else {
-          const eq = window.equipmentList.find(i => i.id === itemId);
-          if (eq) { 
-            eq.status = 'AVAILABLE'; 
-            eq.currentProject = null; 
-            await window.syncEquipmentToCloud(eq);
-          }
-        }
-
-        await window.syncProjectToCloud(proj);
-        window.renderAllWorkspaceViews();
-        showToast(`Đã xóa ${removedItem.name || itemId} khỏi dự án và đưa về kho!`, 'info');
-      }
-    }
-
-    window.returnSingleItem = async function(itemId, itemType) {
+      const raw = e.dataTransfer.getData('text/plain');
+      if (!raw) return;
+      const data = JSON.parse(raw);
       const activeProj = window.projectList.find(p => p.id === window.activeProjectId);
       if (!activeProj) return;
 
-      const projItem = activeProj.items.find(i => i.id === itemId);
-      if (projItem && projItem.status === 'BORROWED') {
-        projItem.status = 'RETURNED';
+      activeProj.items = activeProj.items || [];
 
-        if (itemType === 'SD_CARD') {
-          const sd = window.sdCardList.find(c => c.id === itemId);
-          if (sd) { 
-            sd.status = 'AVAILABLE'; 
-            sd.currentProject = null; 
-            await window.syncSDCardToCloud(sd);
-          }
-        } else {
-          const eq = window.equipmentList.find(i => i.id === itemId);
-          if (eq) { 
-            eq.status = 'AVAILABLE'; 
-            eq.currentProject = null; 
-            await window.syncEquipmentToCloud(eq);
-          }
+      if (data.type === 'EQUIPMENT') {
+        const item = window.equipmentList.find(i => i.id === data.id);
+        if (item && item.status === 'AVAILABLE') {
+          item.status = 'UNAVAILABLE';
+          item.currentProject = activeProj.name;
+          activeProj.items.push({ id: item.id, name: item.name, itemType: 'EQUIPMENT', status: 'BORROWED' });
+          await window.syncEquipmentToCloud(item);
+          await window.syncProjectToCloud(activeProj);
         }
-
-        await window.syncProjectToCloud(activeProj);
-        window.renderAllWorkspaceViews();
-        showToast(`Đã bàn giao món ${projItem.name} về kho (vẫn lưu vết tra cứu)!`, 'info');
+      } else if (data.type === 'SD_CARD') {
+        const card = window.sdCardList.find(c => c.id === data.id);
+        if (card && card.status === 'AVAILABLE') {
+          card.status = 'UNAVAILABLE';
+          card.currentProject = activeProj.name;
+          activeProj.items.push({ id: card.id, name: `Thẻ ${card.id}`, itemType: 'SD_CARD', status: 'BORROWED' });
+          await window.syncSDCardToCloud(card);
+          await window.syncProjectToCloud(activeProj);
+        }
       }
     };
 
-    window.markProjectCompleteAndReturn = async function() {
+    window.returnSingleItem = async (itemId, type) => {
       const activeProj = window.projectList.find(p => p.id === window.activeProjectId);
       if (!activeProj) return;
+      activeProj.items = activeProj.items.filter(i => i.id !== itemId);
 
-      const borrowedItems = activeProj.items ? activeProj.items.filter(i => i.status === 'BORROWED') : [];
-      if (borrowedItems.length === 0) {
-        showToast("Tất cả thiết bị trong dự án này đã được đánh dấu bàn giao trả về kho!", "info");
-        return;
-      }
-
-      if (confirm(`Xác nhận đánh dấu TẤT CẢ ${borrowedItems.length} thiết bị/thẻ nhớ của dự án "${activeProj.name}" là ĐÃ TRẢ VỀ KHO?`)) {
-        for (const projItem of borrowedItems) {
-          projItem.status = 'RETURNED';
-
-          if (projItem.itemType === 'SD_CARD') {
-            const sd = window.sdCardList.find(c => c.id === projItem.id);
-            if (sd) { 
-              sd.status = 'AVAILABLE'; 
-              sd.currentProject = null; 
-              await window.syncSDCardToCloud(sd);
-            }
-          } else {
-            const eq = window.equipmentList.find(i => i.id === projItem.id);
-            if (eq) { 
-              eq.status = 'AVAILABLE'; 
-              eq.currentProject = null; 
-              await window.syncEquipmentToCloud(eq);
-            }
-          }
-        }
-
-        await window.syncProjectToCloud(activeProj);
-        window.renderAllWorkspaceViews();
-        showToast(`Đã bàn giao tất cả thiết bị trong dự án về kho thành công!`, 'success');
-      }
-    };
-
-    window.openEquipmentModal = function(eqId = null) {
-      const titleEl = document.getElementById('modal-eq-title');
-      const origIdInput = document.getElementById('eq-original-id');
-      const idInput = document.getElementById('eq-id');
-      const catInput = document.getElementById('eq-category');
-      const nameInput = document.getElementById('eq-name');
-      const healthInput = document.getElementById('eq-health');
-      const notesInput = document.getElementById('eq-notes');
-      const deleteBtn = document.getElementById('btn-delete-eq');
-      const subContainer = document.getElementById('sub-devices-inputs-container');
-
-      if (subContainer) subContainer.innerHTML = '';
-
-      if (eqId) {
-        const eq = window.equipmentList.find(e => e.id === eqId);
-        if (!eq) return;
-
-        if (titleEl) titleEl.innerText = 'Chỉnh Sửa Thiết Bị';
-        if (origIdInput) origIdInput.value = eq.id;
-        if (idInput) { idInput.value = eq.id; idInput.readOnly = true; }
-        if (catInput) catInput.value = eq.category;
-        if (nameInput) nameInput.value = eq.name;
-        if (healthInput) healthInput.value = eq.healthStatus || 'GOOD';
-        if (notesInput) notesInput.value = eq.note || '';
-        if (deleteBtn) deleteBtn.classList.remove('hidden');
-
-        if (eq.subDevices) {
-          eq.subDevices.forEach(sub => window.addSubDeviceInputRow(sub));
-        }
+      if (type === 'SD_CARD') {
+        const card = window.sdCardList.find(c => c.id === itemId);
+        if (card) { card.status = 'AVAILABLE'; card.currentProject = null; await syncSDCardToCloud(card); }
       } else {
-        if (titleEl) titleEl.innerText = 'Thêm Thiết Bị Mới';
-        if (origIdInput) origIdInput.value = '';
-        if (idInput) { idInput.value = ''; idInput.readOnly = false; }
-        if (catInput) catInput.value = 'Camera';
-        if (nameInput) nameInput.value = '';
-        if (healthInput) healthInput.value = 'GOOD';
-        if (notesInput) notesInput.value = '';
-        if (deleteBtn) deleteBtn.classList.add('hidden');
+        const eq = window.equipmentList.find(i => i.id === itemId);
+        if (eq) { eq.status = 'AVAILABLE'; eq.currentProject = null; await syncEquipmentToCloud(eq); }
       }
 
-      openModal('modal-equipment');
+      await syncProjectToCloud(activeProj);
     };
 
-    window.addSubDeviceInputRow = function(subObj = null) {
-      const container = document.getElementById('sub-devices-inputs-container');
-      if (!container) return;
+    // UTILS
+    window.togglePanel = side => {
+      window.panelState[side] = !window.panelState[side];
+      const panel = document.getElementById(`panel-${side}`);
+      const header = document.getElementById(`${side}-panel-header`);
+      const content = document.getElementById(`${side}-panel-content`);
+      const collapsedBar = document.getElementById(`${side}-collapsed-bar`);
 
-      const row = document.createElement('div');
-      row.className = "flex items-center gap-2 bg-slate-950 p-1.5 rounded border border-slate-800 sub-device-row";
-      row.innerHTML = `
-        <input type="text" placeholder="Mã Sub ID" value="${subObj ? subObj.id : ''}" required class="w-1/3 bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white uppercase sub-id">
-        <input type="text" placeholder="Tên Sub" value="${subObj ? subObj.name : ''}" required class="flex-1 bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white sub-name">
-        <button type="button" onclick="this.closest('.sub-device-row').remove()" class="text-rose-400 p-1"><i class="fa-solid fa-xmark text-xs"></i></button>
-      `;
-      container.appendChild(row);
-    };
-
-    window.saveEquipmentForm = async function(e) {
-      e.preventDefault();
-      const origId = document.getElementById('eq-original-id').value;
-      const id = document.getElementById('eq-id').value.trim().toUpperCase();
-      const cat = document.getElementById('eq-category').value;
-      const name = document.getElementById('eq-name').value.trim();
-      const health = document.getElementById('eq-health').value;
-      const note = document.getElementById('eq-notes').value.trim();
-
-      const subRows = document.querySelectorAll('.sub-device-row');
-      const subDevices = [];
-      subRows.forEach(row => {
-        const subId = row.querySelector('.sub-id').value.trim().toUpperCase();
-        const subName = row.querySelector('.sub-name').value.trim();
-        if (subId && subName) subDevices.push({ id: subId, name: subName, healthStatus: 'GOOD' });
-      });
-
-      if (origId) {
-        const eq = window.equipmentList.find(i => i.id === origId);
-        if (eq) {
-          eq.category = cat; eq.name = name; eq.healthStatus = health; eq.note = note; eq.subDevices = subDevices;
-          await window.syncEquipmentToCloud(eq);
-          showToast(`Cập nhật máy ${name}!`, 'success');
-        }
+      if (window.panelState[side]) {
+        panel.classList.remove('flex-1'); panel.classList.add('w-14');
+        if (header) header.classList.add('hidden');
+        if (content) content.classList.add('hidden');
+        if (collapsedBar) collapsedBar.classList.remove('hidden');
       } else {
-        if (window.equipmentList.some(i => i.id === id)) {
-          showToast(`Mã "${id}" đã tồn tại!`, 'error');
-          return;
-        }
-
-        const newEq = { id, name, category: cat, status: 'AVAILABLE', healthStatus: health, currentProject: null, note, subDevices };
-        window.equipmentList.push(newEq);
-        await window.syncEquipmentToCloud(newEq);
-        showToast(`Đã thêm thiết bị ${name}!`, 'success');
-      }
-
-      closeModal('modal-equipment');
-      window.renderAllWorkspaceViews();
-    };
-
-    window.deleteCurrentEquipment = async function() {
-      const origId = document.getElementById('eq-original-id').value;
-      if (!origId) return;
-
-      if (confirm(`Xóa vĩnh viễn thiết bị này?`)) {
-        window.equipmentList = window.equipmentList.filter(i => i.id !== origId);
-        await window.deleteEquipmentFromCloud(origId);
-        closeModal('modal-equipment');
-        window.renderAllWorkspaceViews();
-        showToast("Đã xóa thiết bị!", "info");
+        panel.classList.add('flex-1'); panel.classList.remove('w-14');
+        if (header) header.classList.remove('hidden');
+        if (content) content.classList.remove('hidden');
+        if (collapsedBar) collapsedBar.classList.add('hidden');
       }
     };
 
-    window.updateSDIdPreview = function() {
-      const qtyInput = document.getElementById('sd-quantity');
-      const capInput = document.getElementById('sd-capacity');
-      const speedInput = document.getElementById('sd-speed');
-      const previewEl = document.getElementById('sd-id-preview');
-
-      if (!qtyInput || !capInput || !speedInput || !previewEl) return;
-
-      const quantity = parseInt(qtyInput.value) || 1;
-      const cleanCap = capInput.value.trim().toUpperCase();
-      const cleanSpeed = speedInput.value.trim().toUpperCase();
-
-      let maxSeq = 0;
-      window.sdCardList.forEach(card => {
-        if (card.id) {
-          const upperId = card.id.toUpperCase();
-          if (upperId.includes(cleanCap) && upperId.includes(cleanSpeed)) {
-            const match = upperId.match(/-(\d+)$/);
-            if (match) {
-              const num = parseInt(match[1], 10);
-              if (!isNaN(num) && num > maxSeq) maxSeq = num;
-            }
-          }
-        }
-      });
-
-      const startSeq = maxSeq + 1;
-      const endSeq = maxSeq + quantity;
-
-      if (quantity === 1) {
-        previewEl.innerText = `MM-SD-${cleanCap}-${cleanSpeed}-${startSeq}`;
-      } else {
-        previewEl.innerText = `MM-SD-${cleanCap}-${cleanSpeed}-${startSeq}  ➔  MM-SD-${cleanCap}-${cleanSpeed}-${endSeq} (${quantity} thẻ)`;
-      }
+    window.updateCollapsedCounts = () => {
+      const p = window.projectList.find(x => x.id === window.activeProjectId);
+      document.getElementById('left-collapsed-count').innerText = p && p.items ? p.items.length : 0;
+      document.getElementById('center-collapsed-count').innerText = window.equipmentList.length;
+      document.getElementById('right-collapsed-count').innerText = window.sdCardList.length;
     };
 
-    window.openSDCardModal = function(sdId = null) {
-      const titleEl = document.getElementById('modal-sd-title');
-      const origIdInput = document.getElementById('sd-original-id');
-      const idInput = document.getElementById('sd-id');
-      const capInput = document.getElementById('sd-capacity');
-      const speedInput = document.getElementById('sd-speed');
-      const qtyInput = document.getElementById('sd-quantity');
-      const healthInput = document.getElementById('sd-health');
-      const notesInput = document.getElementById('sd-notes');
-      const deleteBtn = document.getElementById('btn-delete-sd');
+    window.openModal = id => document.getElementById(id)?.classList.remove('hidden');
+    window.closeModal = id => document.getElementById(id)?.classList.add('hidden');
 
-      const qtyContainer = document.getElementById('sd-quantity-container');
-      const singleIdContainer = document.getElementById('sd-id-single-container');
-      const previewBox = document.getElementById('sd-preview-box');
-
-      if (sdId) {
-        const sd = window.sdCardList.find(c => c.id === sdId);
-        if (!sd) return;
-
-        if (titleEl) titleEl.innerText = 'Chỉnh Sửa Thẻ Nhớ';
-        if (origIdInput) origIdInput.value = sd.id;
-        if (idInput) { idInput.value = sd.id; }
-        if (capInput) capInput.value = sd.capacity || '128GB';
-        if (healthInput) healthInput.value = sd.healthStatus || 'GOOD';
-        if (notesInput) notesInput.value = sd.note || '';
-        if (deleteBtn) deleteBtn.classList.remove('hidden');
-
-        if (qtyContainer) qtyContainer.classList.add('hidden');
-        if (singleIdContainer) singleIdContainer.classList.remove('hidden');
-        if (previewBox) previewBox.classList.add('hidden');
-      } else {
-        if (titleEl) titleEl.innerText = 'Thêm Thẻ Nhớ Hàng Loạt';
-        if (origIdInput) origIdInput.value = '';
-        if (idInput) idInput.value = '';
-        if (qtyInput) qtyInput.value = '1';
-        if (capInput) capInput.value = '128GB';
-        if (speedInput) speedInput.value = 'V30';
-        if (healthInput) healthInput.value = 'GOOD';
-        if (notesInput) notesInput.value = '';
-        if (deleteBtn) deleteBtn.classList.add('hidden');
-
-        if (qtyContainer) qtyContainer.classList.remove('hidden');
-        if (singleIdContainer) singleIdContainer.classList.add('hidden');
-        if (previewBox) previewBox.classList.remove('hidden');
-
-        window.updateSDIdPreview();
-      }
-
-      openModal('modal-sd-card');
-    };
-
-    window.saveSDCardForm = async function(e) {
-      e.preventDefault();
-      const origId = document.getElementById('sd-original-id').value;
-      const capacity = document.getElementById('sd-capacity').value;
-      const health = document.getElementById('sd-health').value;
-      const note = document.getElementById('sd-notes').value.trim();
-
-      if (origId) {
-        const sd = window.sdCardList.find(c => c.id === origId);
-        if (sd) {
-          sd.capacity = capacity; sd.healthStatus = health; sd.note = note;
-          await window.syncSDCardToCloud(sd);
-          showToast(`Đã cập nhật thẻ ${origId}!`, 'success');
-        }
-      } else {
-        const qty = parseInt(document.getElementById('sd-quantity').value) || 1;
-        const speed = document.getElementById('sd-speed').value || 'V30';
-        const cleanCap = capacity.trim().toUpperCase();
-        const cleanSpeed = speed.trim().toUpperCase();
-
-        let maxSeq = 0;
-        window.sdCardList.forEach(card => {
-          if (card.id) {
-            const upperId = card.id.toUpperCase();
-            if (upperId.includes(cleanCap) && upperId.includes(cleanSpeed)) {
-              const match = upperId.match(/-(\d+)$/);
-              if (match) {
-                const num = parseInt(match[1], 10);
-                if (!isNaN(num) && num > maxSeq) maxSeq = num;
-              }
-            }
-          }
-        });
-
-        for (let i = 1; i <= qty; i++) {
-          const seq = maxSeq + i;
-          const newId = `MM-SD-${cleanCap}-${cleanSpeed}-${seq}`;
-          const newCard = {
-            id: newId,
-            capacity: capacity,
-            status: 'AVAILABLE',
-            healthStatus: health,
-            currentProject: null,
-            note: note
-          };
-          window.sdCardList.push(newCard);
-          await window.syncSDCardToCloud(newCard);
-        }
-
-        showToast(`Đã tự động tạo ${qty} thẻ nhớ mới!thinh`, 'success');
-      }
-
-      closeModal('modal-sd-card');
-      window.renderAllWorkspaceViews();
-    };
-
-    window.deleteCurrentSDCard = async function() {
-      const origId = document.getElementById('sd-original-id').value;
-      if (!origId) return;
-
-      if (confirm(`Xóa vĩnh viễn thẻ nhớ này?`)) {
-        window.sdCardList = window.sdCardList.filter(c => c.id !== origId);
-        await window.deleteSDCardFromCloud(origId);
-        closeModal('modal-sd-card');
-        window.renderAllWorkspaceViews();
-        showToast("Đã xóa thẻ nhớ!", "info");
-      }
-    };
-
-    window.openAddProjectModal = function() {
-      const yearSelect = document.getElementById('proj-year');
-      if (yearSelect) {
-        yearSelect.innerHTML = window.yearsList.map(y => `<option value="${y}" ${y === window.activeYear ? 'selected' : ''}>Năm ${y}</option>`).join('');
-      }
-      const dueDateInput = document.getElementById('proj-due-date');
-      if (dueDateInput) dueDateInput.value = new Date().toISOString().split('T')[0];
-
+    window.openAddProjectModal = () => {
+      const sel = document.getElementById('proj-year');
+      sel.innerHTML = window.yearsList.map(y => `<option value="${y}">${y}</option>`).join('');
       openModal('modal-add-project');
     };
 
-    window.syncProjectYearFromDate = function(dateStr) {
-      if (dateStr && dateStr.includes('-')) {
-        const yr = dateStr.split('-')[0];
-        const yearSelect = document.getElementById('proj-year');
-        if (yearSelect && yearSelect.querySelector(`option[value="${yr}"]`)) {
-          yearSelect.value = yr;
-        }
-      }
-    };
-
-    window.saveNewProject = async function(e) {
+    window.saveNewProject = async e => {
       e.preventDefault();
-      const yr = document.getElementById('proj-year').value;
-      const name = document.getElementById('proj-name').value.trim();
-      const borrower = document.getElementById('proj-borrower').value.trim();
-      const handoverDate = document.getElementById('proj-due-date').value;
-
-      const newProjId = 'PROJ-' + Date.now();
-
-      const newProj = {
-        id: newProjId,
-        name: name,
-        year: yr,
-        borrower: borrower,
-        handoverDate: handoverDate,
+      const newP = {
+        id: 'PROJ-' + Date.now(),
+        name: document.getElementById('proj-name').value,
+        year: document.getElementById('proj-year').value,
+        borrower: document.getElementById('proj-borrower').value,
+        handoverDate: document.getElementById('proj-due-date').value,
         items: []
       };
-
-      window.projectList.push(newProj);
-      await window.syncProjectToCloud(newProj);
-
-      if (!window.yearsList.includes(yr)) {
-        window.yearsList.push(yr);
-        window.yearsList.sort((a, b) => b.localeCompare(a));
-        await window.syncYearsToCloud();
-      }
-
-      window.activeYear = yr;
-      window.activeProjectId = newProjId;
-
+      window.projectList.push(newP);
+      await syncProjectToCloud(newP);
       closeModal('modal-add-project');
-      window.renderAllWorkspaceViews();
-      showToast(`Đã tạo dự án mới "${name}"!`, 'success');
     };
 
-    window.confirmDeleteCurrentProject = function() {
-      const activeProj = window.projectList.find(p => p.id === window.activeProjectId);
-      if (!activeProj) {
-        showToast("Không tìm thấy dự án để xóa!", "error");
-        return;
-      }
-      const nameEl = document.getElementById('delete-proj-name-text');
-      if (nameEl) nameEl.innerText = activeProj.name;
-      openModal('modal-confirm-delete-project');
-    };
-
-    window.executeDeleteCurrentProject = async function() {
-      const projId = window.activeProjectId;
-      const activeProj = window.projectList.find(p => p.id === projId);
-      if (!activeProj) return;
-
-      // 1. Release any borrowed equipment or SD cards back to available
-      if (activeProj.items && activeProj.items.length > 0) {
-        for (const projItem of activeProj.items) {
-          if (projItem.status === 'BORROWED') {
-            if (projItem.itemType === 'SD_CARD') {
-              const sd = window.sdCardList.find(c => c.id === projItem.id);
-              if (sd) {
-                sd.status = 'AVAILABLE';
-                sd.currentProject = null;
-                await window.syncSDCardToCloud(sd);
-              }
-            } else {
-              const eq = window.equipmentList.find(i => i.id === projItem.id);
-              if (eq) {
-                eq.status = 'AVAILABLE';
-                eq.currentProject = null;
-                await window.syncEquipmentToCloud(eq);
-              }
-            }
-          }
+    window.openEquipmentModal = (id = null) => {
+      if (id) {
+        const eq = window.equipmentList.find(i => i.id === id);
+        if (eq) {
+          document.getElementById('eq-original-id').value = eq.id;
+          document.getElementById('eq-id').value = eq.id;
+          document.getElementById('eq-name').value = eq.name;
+          document.getElementById('eq-category').value = eq.category;
         }
-      }
-
-      // 2. Remove project locally and from Firebase Cloud
-      window.projectList = window.projectList.filter(p => p.id !== projId);
-      await window.deleteProjectFromCloud(projId);
-
-      // 3. Switch active project to another project in current year, or fall back
-      const projectsInYear = window.projectList.filter(p => p.year.toString() === window.activeYear.toString());
-      if (projectsInYear.length > 0) {
-        window.activeProjectId = projectsInYear[0].id;
-      } else if (window.projectList.length > 0) {
-        window.activeYear = window.projectList[0].year.toString();
-        window.activeProjectId = window.projectList[0].id;
       } else {
-        window.activeProjectId = null;
+        document.getElementById('eq-original-id').value = '';
+        document.getElementById('eq-id').value = '';
+        document.getElementById('eq-name').value = '';
       }
-
-      closeModal('modal-confirm-delete-project');
-      window.renderAllWorkspaceViews();
-      showToast(`Đã xóa dự án "${activeProj.name}" thành công!`, 'info');
+      openModal('modal-equipment');
     };
 
-    window.openPrintCurrentProjectSlip = function() {
-      const activeProj = window.projectList.find(p => p.id === window.activeProjectId);
-      if (!activeProj) return;
+    window.saveEquipmentForm = async e => {
+      e.preventDefault();
+      const id = document.getElementById('eq-id').value.toUpperCase();
+      const name = document.getElementById('eq-name').value;
+      const cat = document.getElementById('eq-category').value;
 
-      const content = document.getElementById('print-modal-content');
-      if (!content) return;
-
-      content.innerHTML = `
-        <div class="text-center border-b pb-4 mb-4">
-          <h2 class="text-xl font-bold uppercase tracking-wide">BIÊN BẢN BÀN GIAO THIẾT BỊ & THẺ NHỚ</h2>
-          <p class="text-xs text-slate-600 mt-1">Media Mice Studio - Workplan ${activeProj.year}</p>
-        </div>
-
-        <div class="grid grid-cols-2 text-xs mb-4 gap-2">
-          <div><strong>Dự Án:</strong> ${activeProj.name}</div>
-          <div><strong>Ngày Bàn Giao:</strong> ${activeProj.handoverDate || 'N/A'}</div>
-          <div><strong>Người Phụ Trách:</strong> ${activeProj.borrower || 'N/A'}</div>
-          <div><strong>Mã Đơn:</strong> ${activeProj.id}</div>
-        </div>
-
-        <table class="w-full text-left text-xs border-collapse border border-slate-300 mb-6">
-          <thead>
-            <tr class="bg-slate-100 border-b border-slate-300">
-              <th class="p-2 border">STT</th>
-              <th class="p-2 border">Mã CODE</th>
-              <th class="p-2 border">Tên / Chi Tiết</th>
-              <th class="p-2 border">Phân Loại</th>
-              <th class="p-2 border">Trạng Thái</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${(activeProj.items || []).map((it, idx) => `
-              <tr class="border-b">
-                <td class="p-2 border text-center">${idx + 1}</td>
-                <td class="p-2 border font-mono font-bold">${it.id}</td>
-                <td class="p-2 border font-bold">${it.name}</td>
-                <td class="p-2 border">${it.itemType === 'SD_CARD' ? 'Thẻ Nhớ' : 'Thiết Bị'}</td>
-                <td class="p-2 border">${it.status === 'BORROWED' ? 'Đang mượn' : 'Đã bàn giao'}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-
-        <div class="grid grid-cols-2 text-center text-xs mt-8 pt-4 border-t">
-          <div><p class="font-bold">KHO MEDIA MICE</p><p class="text-[10px] text-slate-500 italic mt-12">(Ký tên)</p></div>
-          <div><p class="font-bold">NGƯỜI NHẬN BÀN GIAO</p><p class="text-[10px] text-slate-500 italic mt-12">(Ký tên)</p></div>
-        </div>
-      `;
-
-      openModal('modal-print-slip');
+      const item = { id, name, category: cat, status: 'AVAILABLE' };
+      await syncEquipmentToCloud(item);
+      closeModal('modal-equipment');
     };
 
-    window.resetDataToDefault = async function() {
-      renderAllWorkspaceViews();
-      showToast("Đã làm mới dữ liệu từ Firebase Cloud!", "info");
+    window.openSDCardModal = () => openModal('modal-sd-card');
+    window.updateSDIdPreview = () => {
+      const qty = document.getElementById('sd-quantity').value;
+      const cap = document.getElementById('sd-capacity').value;
+      const speed = document.getElementById('sd-speed').value;
+      document.getElementById('sd-id-preview').innerText = `MM-SD-${cap}-${speed}-1 (x${qty})`;
     };
 
-    window.openModal = function(id) { document.getElementById(id)?.classList.remove('hidden'); };
-    window.closeModal = function(id) { document.getElementById(id)?.classList.add('hidden'); };
+    window.saveSDCardForm = async e => {
+      e.preventDefault();
+      const qty = parseInt(document.getElementById('sd-quantity').value) || 1;
+      const cap = document.getElementById('sd-capacity').value;
+      const speed = document.getElementById('sd-speed').value;
 
-    window.showToast = function(msg, type = 'info') {
-      const container = document.getElementById('toast-container');
-      if (!container) return;
+      for (let i = 1; i <= qty; i++) {
+        const card = { id: `MM-SD-${cap}-${speed}-${Date.now() + i}`, capacity: cap, status: 'AVAILABLE' };
+        await syncSDCardToCloud(card);
+      }
+      closeModal('modal-sd-card');
+    };
 
-      const toast = document.createElement('div');
-      const colors = type === 'success' ? 'bg-emerald-600 text-white' : (type === 'error' ? 'bg-rose-600 text-white' : 'bg-blue-600 text-white');
-
-      toast.className = `px-3.5 py-2 rounded-xl text-xs font-bold shadow-xl flex items-center gap-2 transition-all transform translate-y-2 opacity-0 ${colors}`;
-      toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-info'}"></i> <span>${msg}</span>`;
-
-      container.appendChild(toast);
-      setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
-      setTimeout(() => {
-        toast.classList.add('opacity-0', 'translate-y-2');
-        setTimeout(() => toast.remove(), 300);
-      }, 3000);
+    window.confirmDeleteCurrentProject = () => openModal('modal-confirm-delete-project');
+    window.executeDeleteCurrentProject = async () => {
+      if (window.activeProjectId) {
+        await deleteProjectFromCloud(window.activeProjectId);
+        window.activeProjectId = null;
+        closeModal('modal-confirm-delete-project');
+      }
     };
   </script>
 </body>
