@@ -1,0 +1,49 @@
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  user-select: none;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: #090d16;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+.workspace-panel {
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.drop-zone-active {
+  border-color: #3b82f6 !important;
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  box-shadow: inset 0 0 20px rgba(59, 130, 246, 0.25);
+}
+
+.dragging-card {
+  opacity: 0.4;
+  transform: scale(0.96);
+}
+
+.writing-mode-vertical {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  text-orientation: mixed;
+}
+
+@media print {
+  body * { visibility: hidden; }
+  #print-modal-content, #print-modal-content * { visibility: visible; }
+  #print-modal-content {
+    position: absolute; left: 0; top: 0; width: 100%; color: #000 !important; background: #fff !important;
+  }
+  .no-print { display: none !important; }
+}
