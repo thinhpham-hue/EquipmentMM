@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 export default function EquipmentCard({ item, onEdit, onDragStart }) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const isAvail = item.status === 'AVAILABLE';
+  const isAvail = item.status === true;
   const hasSub = item.subDevices && item.subDevices.length > 0;
 
   // Tính toán style màu sắc dựa trên healthStatus

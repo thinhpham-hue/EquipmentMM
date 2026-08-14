@@ -1,7 +1,7 @@
 import React from 'react';
 
 export default function SDCardCard({ card, onEdit, onDragStart }) {
-  const isAvail = card.status === 'AVAILABLE';
+  const isAvail = item.status === true;
 
   return (
     <div
