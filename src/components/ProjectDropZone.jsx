@@ -43,9 +43,7 @@ export default function ProjectDropZone({ activeProject, onDropItem, onReturnIte
           <div className="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 text-xl">
             <i className="fa-solid fa-hand-holding-hand"></i>
           </div>
-          <p className="text-xs font-medium max-w-xs">
-            Kéo & thả **Thiết Bị** hoặc **Thẻ Nhớ** vào đây để phân bổ cho dự án.
-          </p>
+         
         </div>
       ) : (
         items.map((item) => {

@@ -26,7 +26,7 @@ export default function SDCardCard({ card, onEdit, onDragStart }) {
           </div>
 
           <div className="text-[10px] text-slate-400 mt-0.5">
-            {card.note || 'Thẻ chuẩn quay Media Mice'}
+            {card.note}
           </div>
         </div>
 
