@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 export default function ProjectModal({ modalType, setModalType, projForm, setProjForm, yearsList, setProjectList, supabase, setActiveYear, setActiveProjectId, showToast }) {
   if (modalType !== 'PROJECT') return null;

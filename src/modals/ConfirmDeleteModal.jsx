@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 export default function ConfirmDeleteModal({ modalType, setModalType, activeProject, handleExecuteDeleteProject }) {
   if (modalType !== 'CONFIRM_DELETE') return null;

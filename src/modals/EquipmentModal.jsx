@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 export default function EquipmentModal({ modalType, setModalType, editingItem, eqForm, setEqForm, setEquipmentList, equipmentList, supabase, showToast }) {
   if (modalType !== 'EQUIPMENT') return null;

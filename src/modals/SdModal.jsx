@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 export default function SdModal({ modalType, setModalType, sdCardList, setSdCardList, supabase, showToast }) {
   const [form, setForm] = useState({
