@@ -13,6 +13,7 @@ import ProjectModal from './modals/ProjectModal';
 import ConfirmDeleteModal from './modals/ConfirmDeleteModal';
 import PrintModal from './modals/PrintModal';
 import SdModal from './modals/SdModal';
+import AutoPickSdModal from './modals/AutoPickSdModal';
 
 export default function App() {
   const [equipmentList, setEquipmentList] = useState([]);
@@ -479,6 +480,17 @@ export default function App() {
         setModalType={setModalType}
         sdCardList={sdCardList}
         setSdCardList={setSdCardList}
+        supabase={supabase}
+        showToast={showToast}
+      />
+
+      <AutoPickSdModal
+        modalType={modalType}
+        setModalType={setModalType}
+        sdCardList={sdCardList}
+        setSdCardList={setSdCardList}
+        activeProject={activeProject}
+        setProjectList={setProjectList}
         supabase={supabase}
         showToast={showToast}
       />

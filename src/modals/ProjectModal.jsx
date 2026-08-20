@@ -3,6 +3,19 @@ import React from 'react';
 export default function ProjectModal({ modalType, setModalType, projForm, setProjForm, yearsList, setProjectList, supabase, setActiveYear, setActiveProjectId, showToast }) {
   if (modalType !== 'PROJECT') return null;
 
+  const [showActionMenu, setShowActionMenu] = useState(false);
+  const actionMenuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (actionMenuRef.current && !actionMenuRef.current.contains(event.target)) {
+        setShowActionMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
